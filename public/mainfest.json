@@ -1,0 +1,13 @@
+{
+    "short_name": "ذكاء اصطناعي",
+      "name": "ذكاء اصطناعي مجمّع للبرمجة",
+        "description": "تطبيق يعمل دون اتصال يجمع بين نماذج ذكاء اصطناعي مفتوحة المصدر للإجابة على أسئلة البرمجة.",
+          "start_url": "/",
+            "display": "standalone",
+              "background_color": "#ffffff",
+                "theme_color": "#1e40af",
+                  "orientation": "portrait",
+                    "lang": "ar",
+                      "dir": "rtl"
+                      }
+}

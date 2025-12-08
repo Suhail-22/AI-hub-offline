@@ -9,11 +9,29 @@
   "orientation": "portrait",
   "lang": "ar",
   "dir": "rtl",
+  "scope": "/",
   "icons": [
     {
-      "src": "https://ai-hub-offline.vercel.app/icon.png",
+      "src": "https://cdn.iconscout.com/icon/free/png-256/ai-3600893-3007881.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn.iconscout.com/icon/free/png-512/ai-3600893-3007881.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  ]
+  ],
+  "screenshots": [
+    {
+      "src": "https://via.placeholder.com/300x600?text=واجهة+التطبيق",
+      "sizes": "300x600",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "categories": ["utilities", "education"],
+  "prefer_related_applications": false
 }

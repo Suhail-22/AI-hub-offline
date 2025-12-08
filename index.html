@@ -10,6 +10,9 @@
   <link rel="icon" type="image/png" sizes="192x192" href="https://cdn.iconscout.com/icon/free/png-256/ai-3600893-3007881.png" />
   <link rel="apple-touch-icon" href="https://cdn.iconscout.com/icon/free/png-512/ai-3600893-3007881.png">
   
+  <!-- خط اليد المنحني -->
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+  
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');
     
@@ -67,24 +70,15 @@
     }
     
     .app-title {
-      font-size: 1.3rem;
+      font-family: 'Dancing Script', cursive;
+      font-size: 1.8rem;
       font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+      color: white;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      letter-spacing: 0.05em;
     }
     
-    .app-title-icon {
-      font-size: 1.6rem;
-    }
-    
-    .icons-container {
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-    }
-    
-    .icon-btn {
+    .settings-btn {
       background: rgba(255, 255, 255, 0.2);
       border: none;
       width: 40px;
@@ -99,14 +93,9 @@
       justify-content: center;
     }
     
-    .icon-btn:hover {
+    .settings-btn:hover {
       background: rgba(255, 255, 255, 0.3);
       transform: scale(1.1);
-    }
-    
-    .icon-btn.active {
-      background: white;
-      color: var(--primary);
     }
     
     /* منطقة العرض */
@@ -161,6 +150,43 @@
       padding: 0.25rem 0.5rem;
       border-radius: 4px;
       font-family: monospace;
+    }
+    
+    /* شريط الأيقونات فوق صندوق الإدخال */
+    .model-icons-bar {
+      background: white;
+      padding: 0.8rem 1rem;
+      border-top: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: center;
+      gap: 1.2rem;
+      position: sticky;
+      bottom: 60px;
+      z-index: 100;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .model-icon-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .model-icon-btn.active {
+      color: var(--primary);
+    }
+    
+    .model-icon-btn:hover {
+      transform: scale(1.1);
+    }
+    
+    .model-icon-btn span {
+      font-size: 0.85rem;
+      font-weight: 500;
     }
     
     /* منطقة الإدخال */
@@ -246,50 +272,27 @@
       }
       
       .app-title {
-        font-size: 1.1rem;
+        font-size: 1.6rem;
       }
       
-      .icon-btn {
-        width: 36px;
-        height: 36px;
-        font-size: 1rem;
+      .model-icons-bar {
+        gap: 0.8rem;
       }
       
-      .content {
-        padding: 1rem;
-      }
-      
-      .model-card {
-        padding: 1rem;
+      .model-icon-btn span {
+        font-size: 0.75rem;
       }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- الشريط العلوي مع الأيقونات -->
+    <!-- الشريط العلوي مع اسم التطبيق بخط يد -->
     <div class="app-bar">
-      <div class="app-title">
-        <div class="app-title-icon">🧠</div>
-        <span>ذكاء اصطناعي مجمّع</span>
-      </div>
-      <div class="icons-container">
-        <button class="icon-btn active" title="Qwen3" onclick="selectModel('qwen3')">
-          🧠
-        </button>
-        <button class="icon-btn" title="DeepSeek-Coder" onclick="selectModel('deepseek')">
-          💻
-        </button>
-        <button class="icon-btn" title="Phi-3" onclick="selectModel('phi3')">
-          🤖
-        </button>
-        <button class="icon-btn" title="مقارنة" onclick="compareModels()">
-          📊
-        </button>
-        <button class="icon-btn" title="إعدادات" onclick="showSettings()">
-          ⚙️
-        </button>
-      </div>
+      <div class="app-title">ذكاء اصطناعي مجمّع</div>
+      <button class="settings-btn" title="الإعدادات" onclick="showSettings()">
+        ⚙️
+      </button>
     </div>
     
     <!-- منطقة عرض النتائج -->
@@ -329,6 +332,30 @@
       </div>
     </div>
     
+    <!-- شريط الأيقونات فوق صندوق الإدخال -->
+    <div class="model-icons-bar">
+      <div class="model-icon-btn active" onclick="selectModel('qwen3')">
+        <div style="font-size: 2.2rem;">🧠</div>
+        <span>Qwen3</span>
+      </div>
+      <div class="model-icon-btn" onclick="selectModel('deepseek')">
+        <div style="font-size: 2.2rem;">💻</div>
+        <span>DeepSeek</span>
+      </div>
+      <div class="model-icon-btn" onclick="selectModel('phi3')">
+        <div style="font-size: 2.2rem;">🤖</div>
+        <span>Phi-3</span>
+      </div>
+      <div class="model-icon-btn" onclick="compareModels()">
+        <div style="font-size: 2.2rem;">📊</div>
+        <span>مقارنة</span>
+      </div>
+      <div class="model-icon-btn" onclick="saveConversation()">
+        <div style="font-size: 2.2rem;">💾</div>
+        <span>حفظ</span>
+      </div>
+    </div>
+    
     <!-- منطقة الإدخال -->
     <div class="input-container">
       <div class="input-box">
@@ -351,12 +378,12 @@
     // اختيار نموذج
     function selectModel(model) {
       // إزالة التحديد السابق
-      document.querySelectorAll('.icon-btn').forEach(btn => {
+      document.querySelectorAll('.model-icon-btn').forEach(btn => {
         btn.classList.remove('active');
       });
       
       // تحديد النموذج الجديد
-      event.target.classList.add('active');
+      event.target.closest('.model-icon-btn').classList.add('active');
       selectedModel = model;
       
       // تحديث الواجهة
@@ -366,13 +393,6 @@
         'phi3': 'Phi-3'
       };
       
-      const modelIcons = {
-        'qwen3': '🧠',
-        'deepseek': '💻',
-        'phi3': '🤖'
-      };
-      
-      // تحديث النموذج النشط في الواجهة (مستقبلاً)
       console.log(`تم اختيار النموذج: ${modelNames[model]}`);
     }
     
@@ -385,7 +405,7 @@
         return;
       }
       
-      // محاكاة الردود (سيتم استبدالها بالذكاء الاصطناعي لاحقًا)
+      // محاكاة الردود
       const models = ['qwen3', 'deepseek', 'phi3'];
       const responses = {
         'qwen3': `بناءً على سؤالك:\n\`\`\`python\n# مثال لحل مشكلة المصفوفات\narr = [1, 2, 3, 4, 5]\nresult = [x*2 for x in arr]\nprint(result)  # الناتج: [2, 4, 6, 8, 10]\n\`\`\`\nهذا حل بسيط باستخدام Python. هل تريد شرحًا مفصلاً؟`,

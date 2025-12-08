@@ -6,8 +6,9 @@
   <meta name="theme-color" content="#1e40af" />
   <title>ذكاء اصطناعي مجمّع</title>
   <link rel="manifest" href="/manifest.json" />
-  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="https://cdn.iconscout.com/icon/free/png-256/ai-3600893-3007881.png" />
   <script>
+    // تسجيل Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
@@ -17,33 +18,200 @@
     }
   </script>
   <style>
-    body {
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #f0f9ff;
+      color: #1e40af;
+      font-family: 'Tajawal', Arial, sans-serif;
+      line-height: 1.6;
       min-height: 100vh;
+      padding: 1rem;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      text-align: center;
+      padding: 1.5rem 0;
+      margin-bottom: 2rem;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+      color: #1e40af;
+    }
+    .status {
+      padding: 0.5rem;
+      border-radius: 8px;
+      margin-top: 0.5rem;
+      font-weight: bold;
+    }
+    .status.online {
+      background-color: #dcfce7;
+      color: #166534;
+    }
+    .status.offline {
+      background-color: #fee2e2;
+      color: #b91c1c;
+    }
+    .main-content {
+      flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      background-color: #f0f9ff;
-      color: #1e40af;
-      font-family: 'Tajawal', Arial, sans-serif;
       text-align: center;
-      padding: 1.5rem;
+      padding: 1rem;
     }
-    h1 {
-      font-size: 1.8rem;
+    .message {
+      font-size: 1.3rem;
       margin-bottom: 1rem;
     }
-    p {
-      font-size: 1.1rem;
-      line-height: 1.6;
+    .icons-container {
+      display: none;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 2rem;
+      width: 100%;
+    }
+    .icon-card {
+      background: white;
+      border: 2px solid #1e40af;
+      border-radius: 12px;
+      padding: 1rem;
+      width: 120px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .icon-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      color: #1e40af;
+    }
+    .icon-label {
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+    footer {
+      text-align: center;
+      padding: 1.5rem 0;
+      font-size: 0.9rem;
+      color: #4b5563;
+    }
+    @media (max-width: 600px) {
+      .icons-container {
+        flex-direction: column;
+        align-items: center;
+      }
+      .icon-card {
+        width: 100%;
+        max-width: 300px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>✅ التطبيق يعمل دون اتصال!</h1>
-  <p>تم تحميل هيكل PWA بنجاح.</p>
-  <p>بعد التثبيت، سيعمل هذا التطبيق حتى بدون إنترنت.</p>
+  <div class="container">
+    <header>
+      <h1>🧠 ذكاء اصطناعي مجمّع</h1>
+      <div id="connection-status" class="status online">
+        ✅ اتصال بالإنترنت - جميع الميزات متاحة
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="message">
+        <p>✅ التطبيق يعمل دون اتصال!</p>
+        <p>تم تحميل هيكل PWA بنجاح.</p>
+      </div>
+
+      <div id="icons-container" class="icons-container">
+        <div class="icon-card" onclick="useModel('qwen3')">
+          <div class="icon">🧠</div>
+          <div class="icon-label">Qwen3</div>
+        </div>
+        <div class="icon-card" onclick="useModel('deepseek')">
+          <div class="icon">💻</div>
+          <div class="icon-label">DeepSeek</div>
+        </div>
+        <div class="icon-card" onclick="useModel('phi3')">
+          <div class="icon">🤖</div>
+          <div class="icon-label">Phi-3</div>
+        </div>
+        <div class="icon-card" onclick="compareModels()">
+          <div class="icon">📊</div>
+          <div class="icon-label">مقارنة</div>
+        </div>
+        <div class="icon-card" onclick="saveConversation()">
+          <div class="icon">💾</div>
+          <div class="icon-label">حفظ</div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <p>تطبيق يعمل دون اتصال - الإصدار 1.0</p>
+    </footer>
+  </div>
+
+  <script>
+    // تتبع حالة الاتصال
+    function updateConnectionStatus() {
+      const statusElement = document.getElementById('connection-status');
+      const iconsContainer = document.getElementById('icons-container');
+      
+      if (navigator.onLine) {
+        statusElement.textContent = '✅ اتصال بالإنترنت - جميع الميزات متاحة';
+        statusElement.className = 'status online';
+        iconsContainer.style.display = 'flex';
+      } else {
+        statusElement.textContent = '❌ وضع دون اتصال - يعمل بالذكاء الاصطناعي المحلي فقط';
+        statusElement.className = 'status offline';
+        iconsContainer.style.display = 'none';
+      }
+    }
+
+    // تحديث الحالة عند تحميل الصفحة
+    updateConnectionStatus();
+
+    // الاستماع لتغيرات الاتصال
+    window.addEventListener('online', updateConnectionStatus);
+    window.addEventListener('offline', updateConnectionStatus);
+
+    // وظائف الأيقونات (ستُنفَّذ لاحقًا)
+    function useModel(model) {
+      if (navigator.onLine) {
+        alert(`سيتم استخدام نموذج ${model} عند دمج الذكاء الاصطناعي`);
+      } else {
+        alert('هذه الميزة تتطلب اتصال بالإنترنت - نعمل الآن على النماذج المحلية');
+      }
+    }
+
+    function compareModels() {
+      if (navigator.onLine) {
+        alert('سيتم مقارنة النماذج الثلاثة عند دمج الذكاء الاصطناعي');
+      } else {
+        alert('هذه الميزة تتطلب اتصال بالإنترنت - نعمل الآن على النماذج المحلية');
+      }
+    }
+
+    function saveConversation() {
+      alert('سيتم حفظ المحادثة في الذاكرة المحلية');
+    }
+  </script>
 </body>
 </html>

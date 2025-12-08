@@ -1,10 +1,10 @@
 {
-  "short_name": "ذكاء اصطناعي",
-  "name": "ذكاء اصطناعي مجمّع",
+  "short_name": "Qwen Chat",
+  "name": "Qwen Chat - ذكاء اصطناعي مجمّع",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#1e40af",
+  "theme_color": "#4e77f5",
   "orientation": "portrait",
   "lang": "ar",
   "dir": "rtl",
@@ -19,17 +19,6 @@
       "src": "https://cdn.iconscout.com/icon/free/png-512/ai-3600893-3007881.png",
       "sizes": "512x512",
       "type": "image/png"
-    }
-  ],
-  "permissions": ["microphone", "storage"],
-  "file_handlers": [
-    {
-      "action": "/handle-file",
-      "accept": {
-        "image/*": [".png", ".jpg", ".jpeg"],
-        "application/pdf": [".pdf"],
-        "text/plain": [".txt"]
-      }
     }
   ]
 }

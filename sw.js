@@ -1,9 +1,10 @@
-const CACHE_NAME = 'ai-hub-v7';
+const CACHE_NAME = 'ai-hub-v8';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
   'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
   'https://cdn.iconscout.com/icon/free/png-192/ai-3600893-3007881.png',
   'https://cdn.iconscout.com/icon/free/png-512/ai-3600893-3007881.png',
   'https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap',
@@ -16,6 +17,7 @@ self.addEventListener('install', (event) => {
       .then(cache => {
         return cache.addAll(urlsToCache);
       })
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -28,7 +30,6 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// تنظيف الذاكرة المؤقتة القديمة
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -40,5 +41,15 @@ self.addEventListener('activate', (event) => {
         })
       );
     })
+    .then(() => self.clients.claim())
   );
+});
+
+// دعم تخزين النماذج الكبيرة
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'CACHE_MODEL') {
+    caches.open(CACHE_NAME).then(cache => {
+      cache.put(event.data.url, new Response(event.data.data));
+    });
+  }
 });

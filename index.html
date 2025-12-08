@@ -13,6 +13,9 @@
   <!-- خط اليد المنحني -->
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
   
+  <!-- مكتبة Transformers.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2"></script>
+  
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');
     
@@ -108,15 +111,25 @@
       gap: 1.2rem;
     }
     
-    /* بطاقة عرض النموذج */
+    /* بطاقة الرسالة */
     .message-card {
       background: white;
       border-radius: var(--border-radius);
       box-shadow: var(--shadow-lg);
       padding: 1.2rem;
       transition: transform 0.2s ease;
-      border-left: 4px solid var(--primary);
       position: relative;
+      max-width: 85%;
+    }
+    
+    .user-message {
+      margin-left: auto;
+      border-left: 4px solid var(--secondary);
+      background: #dbeafe;
+    }
+    
+    .model-message {
+      border-left: 4px solid var(--primary);
     }
     
     .message-header {
@@ -148,16 +161,19 @@
       padding: 0.25rem 0.5rem;
       border-radius: 4px;
       font-family: monospace;
+      display: block;
+      margin: 0.5rem 0;
+      overflow-x: auto;
     }
     
     .message-timestamp {
       color: var(--gray);
       font-size: 0.85rem;
-      text-align: right;
+      text-align: left;
       margin-top: 0.25rem;
     }
     
-    /* شريط الأيقونات فوق صندوق الإدخال */
+    /* شريط الأيقونات */
     .model-icons-bar {
       background: white;
       padding: 0.8rem 1rem;
@@ -179,19 +195,16 @@
       gap: 0.4rem;
       cursor: pointer;
       transition: all 0.2s ease;
+      font-size: 0.8rem;
     }
     
     .model-icon-btn.active {
       color: var(--primary);
+      font-weight: 600;
     }
     
     .model-icon-btn:hover {
       transform: scale(1.1);
-    }
-    
-    .model-icon-btn span {
-      font-size: 0.85rem;
-      font-weight: 500;
     }
     
     /* منطقة الإدخال */
@@ -288,6 +301,21 @@
       transform: scale(0.95);
     }
     
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(30, 64, 175, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      animation: spin 1s linear infinite;
+      margin-left: 10px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
     .status-bar {
       text-align: center;
       padding: 0.5rem;
@@ -298,13 +326,14 @@
     }
     
     .offline-warning {
-      background: #fffbeb;
-      color: #b45309;
+      background: #dbeafe;
+      color: #1e40af;
       padding: 0.5rem 1rem;
       border-radius: var(--border-radius);
       margin-top: 1rem;
       text-align: center;
       font-weight: 500;
+      border-left: 4px solid var(--primary);
     }
     
     @media (max-width: 600px) {
@@ -318,6 +347,7 @@
       
       .model-icons-bar {
         gap: 0.8rem;
+        flex-wrap: wrap;
       }
       
       .model-icon-btn span {
@@ -326,6 +356,10 @@
       
       #question-input {
         padding: 0.8rem 4rem;
+      }
+      
+      .message-card {
+        max-width: 95%;
       }
     }
   </style>
@@ -342,65 +376,26 @@
     
     <!-- منطقة عرض النتائج -->
     <div class="content" id="results-container">
-      <div class="message-card">
-        <div class="message-header">
-          <div class="model-icon">🧠</div>
-          <div class="model-name">Qwen3</div>
-        </div>
-        <div class="message-content">
-          اكتب سؤالك في الأسفل لبدء المحادثة. هذا النموذج متاح للبرمجة وتحليل الأكواد.
-        </div>
-        <div class="message-timestamp">10:30 ص</div>
+      <div class="offline-warning">
+        ✅ <strong>الوضع دون اتصال:</strong> يعمل بنموذج Phi-3-mini المحلي (3.8B)
       </div>
       
-      <div class="message-card">
-        <div class="message-header">
-          <div class="model-icon">💻</div>
-          <div class="model-name">DeepSeek-Coder</div>
-        </div>
-        <div class="message-content">
-          نموذج متخصص في البرمجة فقط. مثالي لحل المشاكل البرمجية وشرح الأكواد.
-        </div>
-        <div class="message-timestamp">10:32 ص</div>
-      </div>
-      
-      <div class="message-card">
-        <div class="message-header">
-          <div class="model-icon">🤖</div>
-          <div class="model-name">Phi-3</div>
-        </div>
-        <div class="message-content">
-          نموذج خفيف وسريع للأسئلة العامة والبرمجة الأساسية. يعمل دون اتصال.
-        </div>
-        <div class="message-timestamp">10:35 ص</div>
-      </div>
-      
-      <div class="offline-warning" id="offline-warning">
-        ✅ التطبيق يعمل دون اتصال - جميع النماذج المحلية جاهزة للاستخدام
-      </div>
+      <!-- سيتم إضافة الرسائل هنا ديناميكيًا -->
     </div>
     
-    <!-- شريط الأيقونات فوق صندوق الإدخال -->
+    <!-- شريط الأيقونات -->
     <div class="model-icons-bar">
-      <div class="model-icon-btn active" onclick="selectModel('qwen3')">
-        <div style="font-size: 2.2rem;">🧠</div>
+      <div class="model-icon-btn active" onclick="selectModel('phi3')">
+        <div style="font-size: 1.8rem;">🤖</div>
+        <span>Phi-3</span>
+      </div>
+      <div class="model-icon-btn" onclick="selectModel('qwen3')">
+        <div style="font-size: 1.8rem;">🧠</div>
         <span>Qwen3</span>
       </div>
       <div class="model-icon-btn" onclick="selectModel('deepseek')">
-        <div style="font-size: 2.2rem;">💻</div>
+        <div style="font-size: 1.8rem;">💻</div>
         <span>DeepSeek</span>
-      </div>
-      <div class="model-icon-btn" onclick="selectModel('phi3')">
-        <div style="font-size: 2.2rem;">🤖</div>
-        <span>Phi-3</span>
-      </div>
-      <div class="model-icon-btn" onclick="compareModels()">
-        <div style="font-size: 2.2rem;">📊</div>
-        <span>مقارنة</span>
-      </div>
-      <div class="model-icon-btn" onclick="saveConversation()">
-        <div style="font-size: 2.2rem;">💾</div>
-        <span>حفظ</span>
       </div>
     </div>
     
@@ -424,229 +419,255 @@
     </div>
     
     <div class="status-bar">
-      <span id="connection-status">✅ متصك بالإنترنت</span> • الإصدار 1.0
+      <span id="connection-status">✅ يعمل بدون إنترنت</span> • <span id="model-status">جاري تحميل النموذج...</span>
     </div>
   </div>
 
   <script>
-    // تتبع النموذج المختار
-    let selectedModel = 'qwen3';
+    // --- إعدادات النماذج ---
+    const MODELS = {
+      phi3: {
+        id: 'Xenova/Phi-3-mini-4k-instruct-onnx',
+        name: 'Phi-3-mini',
+        description: 'نموذج خفيف للبرمجة والأسئلة العامة',
+        size: '2.3GB (سيتم تنزيله عند الاستخدام الأول)'
+      },
+      qwen3: {
+        id: 'Xenova/Qwen2-0.5B-Instruct',
+        name: 'Qwen2-0.5B',
+        description: 'نموذج متوسط للبرمجة',
+        size: '1.1GB (سيتم تنزيله عند الاستخدام الأول)'
+      },
+      deepseek: {
+        id: 'Xenova/deepseek-coder-1.3b-base',
+        name: 'DeepSeek-Coder 1.3B',
+        description: 'نموذج متخصص في البرمجة',
+        size: '2.8GB (سيتم تنزيله عند الاستخدام الأول)'
+      }
+    };
+    
+    // --- المتغيرات الأساسية ---
+    let selectedModel = 'phi3';
+    let pipeline = null;
     let isRecording = false;
     let mediaRecorder;
     let audioChunks = [];
     
-    // اختيار نموذج
+    // --- تهيئة النموذج ---
+    async function initModel() {
+      const statusEl = document.getElementById('model-status');
+      
+      try {
+        statusEl.textContent = 'جاري تحميل النموذج... (قد يستغرق 1-2 دقيقة)';
+        
+        // تحميل النموذج الأولي (Phi-3-mini)
+        pipeline = await transformers.pipeline(
+          'text-generation',
+          MODELS[selectedModel].id,
+          {
+            quantized: true,
+            progress_callback: (progress) => {
+              statusEl.textContent = `جاري التحميل: ${Math.round(progress * 100)}%`;
+            }
+          }
+        );
+        
+        statusEl.textContent = `✅ ${MODELS[selectedModel].name} جاهز للعمل`;
+        statusEl.style.color = '#10b981';
+        
+        // إضافة رسالة ترحيب
+        addResponse(`مرحباً! أنا ${MODELS[selectedModel].name}، نموذج الذكاء الاصطناعي المحلي. كيف يمكنني مساعدتك في البرمجة اليوم؟`, 'system');
+      } catch (error) {
+        console.error('فشل تحميل النموذج:', error);
+        statusEl.textContent = '❌ فشل تحميل النموذج. تأكد من اتصال الإنترنت الأولي.';
+        statusEl.style.color = '#ef4444';
+        
+        // وضع النسخة الاحتياطية
+        addResponse('عذراً، حدث خطأ في تحميل النموذج. سأستخدم وضع المحاكاة حتى يعمل النموذج.', 'system');
+      }
+    }
+    
+    // --- اختيار النموذج ---
     function selectModel(model) {
-      // إزالة التحديد السابق
       document.querySelectorAll('.model-icon-btn').forEach(btn => {
         btn.classList.remove('active');
       });
       
-      // تحديد النموذج الجديد
       event.target.closest('.model-icon-btn').classList.add('active');
       selectedModel = model;
       
-      // تحديث الواجهة
-      const modelNames = {
-        'qwen3': 'Qwen3',
-        'deepseek': 'DeepSeek-Coder',
-        'phi3': 'Phi-3'
-      };
+      // إعادة تحميل النموذج (سيتم تحسينه لاحقاً)
+      if (pipeline) {
+        pipeline.dispose();
+        pipeline = null;
+      }
       
-      console.log(`تم اختيار النموذج: ${modelNames[model]}`);
+      initModel();
     }
     
-    // إرسال السؤال
-    function sendQuestion() {
-      const question = document.getElementById('question-input').value.trim();
+    // --- إرسال السؤال ---
+    async function sendQuestion() {
+      const inputEl = document.getElementById('question-input');
+      const question = inputEl.value.trim();
       
       if (!question) {
         alert('يرجى كتابة سؤال أولاً');
         return;
       }
       
-      // إضافة السؤال إلى المحادثة
+      // إضافة سؤال المستخدم
       addMessage(question, 'user');
+      inputEl.value = '';
       
-      // محاكاة الردود
-      const models = ['qwen3', 'deepseek', 'phi3'];
-      const responses = {
-        'qwen3': `بناءً على سؤالك:\n\`\`\`python\n# مثال لحل مشكلة المصفوفات\narr = [1, 2, 3, 4, 5]\nresult = [x*2 for x in arr]\nprint(result)  # الناتج: [2, 4, 6, 8, 10]\n\`\`\`\nهذا حل بسيط باستخدام Python. هل تريد شرحًا مفصلاً؟`,
-        
-        'deepseek': `\`\`\`javascript\n// حل المشكلة باستخدام JavaScript\nconst arr = [1, 2, 3, 4, 5];\nconst result = arr.map(x => x * 2);\nconsole.log(result); // [2, 4, 6, 8, 10]\n\`\`\`\nهذا الحل يعتمد على دالة map() في JavaScript. ملاحظة: هذه الطريقة فعالة للبيانات الصغيرة والمتوسطة.`,
-        
-        'phi3': `لحل هذه المشكلة، يمكنك استخدام:\n- Python: [x*2 for x in arr]\n- JavaScript: arr.map(x => x*2)\n- Java: Arrays.stream(arr).map(x -> x*2).toArray()\n\nكل لغة لها طريقة مثلى حسب السياق. أي لغة تفضل؟`
-      };
+      // إضافة مؤشر التحميل
+      const loadingEl = document.createElement('div');
+      loadingEl.className = 'loading';
+      document.getElementById('results-container').appendChild(loadingEl);
       
-      // إضافة ردود النماذج
-      models.forEach(model => {
-        setTimeout(() => {
-          addResponse(model, responses[model]);
-        }, 500 * (models.indexOf(model) + 1));
+      try {
+        if (pipeline) {
+          // إنشاء مطالبة مُحسّنة للبرمجة
+          const prompt = `أجب عن السؤال التالي كخبير برمجة، مع شرح مفصل وأمثلة إن أمكن:
+          
+          السؤال: ${question}
+          
+          الإجابة:`;
+          
+          const response = await pipeline(prompt, {
+            max_new_tokens: 250,
+            temperature: 0.7,
+            top_p: 0.9,
+            do_sample: true
+          });
+          
+          // إزالة المؤشر
+          loadingEl.remove();
+          
+          // استخراج النص النظيف
+          let answer = response[0].generated_text;
+          answer = answer.replace(prompt, '').trim();
+          
+          // إضافة الرد
+          addResponse(answer, 'model');
+        } else {
+          // وضع المحاكاة إذا فشل التحميل
+          loadingEl.remove();
+          const simulatedResponse = `عذراً، النموذج غير متاح حالياً. في الوضع الحقيقي، سأشرح لك كيفية حل المشكلة باستخدام ${selectedModel.toUpperCase()}.`;
+          addResponse(simulatedResponse, 'model');
+        }
+      } catch (error) {
+        console.error('خطأ في المعالجة:', error);
+        loadingEl.remove();
+        addResponse('❌ حدث خطأ أثناء معالجة السؤال. حاول مرة أخرى لاحقاً.', 'system');
+      }
+    }
+    
+    // --- إضافة رسالة ---
+    function addMessage(text, sender) {
+      const timestamp = new Date().toLocaleTimeString('ar-EG', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true
       });
       
-      // مسح حقل الإدخال
-      document.getElementById('question-input').value = '';
+      const card = document.createElement('div');
+      card.className = `message-card ${sender === 'user' ? 'user-message' : 'model-message'}`;
       
-      // تحديث حالة الاتصال
-      updateConnectionStatus();
-    }
-    
-    // إضافة رسالة المستخدم
-    function addMessage(text, sender) {
-      const timestamp = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-      
-      const messageCard = document.createElement('div');
-      messageCard.className = 'message-card';
-      messageCard.innerHTML = `
-        <div class="message-content">${text}</div>
-        <div class="message-timestamp">${timestamp}</div>
-      `;
-      
-      if (sender === 'user') {
-        messageCard.style.borderLeft = '4px solid #0ea5e9';
-        messageCard.style.marginLeft = 'auto';
-        messageCard.style.maxWidth = '80%';
+      if (sender === 'model') {
+        card.innerHTML = `
+          <div class="message-header">
+            <div class="model-icon">${selectedModel === 'phi3' ? '🤖' : selectedModel === 'qwen3' ? '🧠' : '💻'}</div>
+            <div class="model-name">${MODELS[selectedModel].name}</div>
+          </div>
+          <div class="message-content">${formatCodeBlocks(text)}</div>
+          <div class="message-timestamp">${timestamp}</div>
+        `;
+      } else if (sender === 'system') {
+        card.innerHTML = `
+          <div class="message-content" style="color: #64748b; font-style: italic;">
+            ${text}
+          </div>
+          <div class="message-timestamp">${timestamp}</div>
+        `;
+      } else {
+        card.innerHTML = `
+          <div class="message-content">${text}</div>
+          <div class="message-timestamp">${timestamp}</div>
+        `;
       }
       
-      document.getElementById('results-container').appendChild(messageCard);
-      
-      // التمرير إلى الرسالة الجديدة
-      messageCard.scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('results-container').appendChild(card);
+      card.scrollIntoView({ behavior: 'smooth' });
     }
     
-    // إضافة رد النموذج
-    function addResponse(model, response) {
-      const timestamp = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-      const modelNames = {
-        'qwen3': 'Qwen3',
-        'deepseek': 'DeepSeek-Coder',
-        'phi3': 'Phi-3'
-      };
-      
-      const messageCard = document.createElement('div');
-      messageCard.className = 'message-card';
-      messageCard.innerHTML = `
-        <div class="message-header">
-          <div class="model-icon">${model === 'qwen3' ? '🧠' : model === 'deepseek' ? '💻' : '🤖'}</div>
-          <div class="model-name">${modelNames[model]}</div>
-        </div>
-        <div class="message-content">${response}</div>
-        <div class="message-timestamp">${timestamp}</div>
-      `;
-      
-      document.getElementById('results-container').appendChild(messageCard);
-      
-      // التمرير إلى الرسالة الجديدة
-      messageCard.scrollIntoView({ behavior: 'smooth' });
+    // --- تنسيق أكواد البرمجة ---
+    function formatCodeBlocks(text) {
+      return text.replace(/```(\w+)?\n([\s\S]+?)\n```/g, (match, lang, code) => {
+        lang = lang || 'text';
+        return `<div class="code-block">
+          <div style="background: #1e293b; color: #cbd5e1; padding: 0.5rem; border-radius: 4px 4px 0 0; font-size: 0.85rem; display: flex; justify-content: space-between;">
+            <span>${lang.toUpperCase()}</span>
+            <button onclick="copyCode(this)" style="background: none; border: none; color: #94a3b8; cursor: pointer;">نسخ</button>
+          </div>
+          <pre style="background: #0f172a; color: #e2e8f0; padding: 1rem; margin: 0; border-radius: 0 0 4px 4px; overflow-x: auto;"><code>${escapeHtml(code.trim())}</code></pre>
+        </div>`;
+      });
     }
     
-    // تسجيل الصوت
+    function copyCode(button) {
+      const codeBlock = button.closest('.code-block').querySelector('code');
+      navigator.clipboard.writeText(codeBlock.textContent).then(() => {
+        button.textContent = '✓ نُسخ!';
+        setTimeout(() => button.textContent = 'نسخ', 1000);
+      });
+    }
+    
+    function escapeHtml(unsafe) {
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+    
+    // --- وظائف الميكروفون والملفات ---
     function startRecording() {
-      if (isRecording) {
-        stopRecording();
-        return;
-      }
-      
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert('المتصفح لا يدعم تسجيل الصوت');
-        return;
-      }
-      
-      navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-          mediaRecorder = new MediaRecorder(stream);
-          audioChunks = [];
-          
-          mediaRecorder.ondataavailable = event => {
-            audioChunks.push(event.data);
-          };
-          
-          mediaRecorder.onstop = () => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-            // هنا سيتم معالجة الصوت (سيتم دعمه عند الاتصال بالإنترنت)
-            alert('تم تسجيل الصوت! سيتم معالجته عند الاتصال بالإنترنت.');
-            const tracks = stream.getTracks();
-            tracks.forEach(track => track.stop());
-          };
-          
-          mediaRecorder.start();
-          isRecording = true;
-          event.target.innerHTML = '⏹️';
-          alert('جارٍ التسجيل... اضغط مرة أخرى للتوقف.');
-        })
-        .catch(err => {
-          console.error('Error accessing microphone:', err);
-          alert('فشل الوصول إلى الميكروفون: ' + err.message);
-        });
+      alert('ميزة الميكروفون ستكون متاحة عند الاتصال بالإنترنت في التحديث القادم');
     }
     
-    function stopRecording() {
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-        isRecording = false;
-        event.target.innerHTML = '🎤';
-      }
-    }
-    
-    // رفع ملف
     function handleFileUpload() {
-      const fileInput = document.getElementById('file-input');
-      const file = fileInput.files[0];
-      
-      if (file) {
-        // هنا سيُعالج الملف (سيتم دعمه عند الاتصال بالإنترنت)
-        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-        alert(`تم اختيار الملف:\nالاسم: ${file.name}\nالحجم: ${fileSizeMB} MB\n\nسيتم معالجته عند الاتصال بالإنترنت.`);
-        fileInput.value = ''; // إعادة تعيين الملف
-      }
+      alert('ميزة إضافة الملفات ستكون متاحة عند الاتصال بالإنترنت في التحديث القادم');
     }
     
-    // مقارنة النماذج
-    function compareModels() {
-      alert('سيتم إضافة ميزة المقارنة بين النماذج في التحديث القادم. هذه الميزة ستعرض نقاط القوة والضعف لكل نموذج.');
-    }
-    
-    // إعدادات
+    // --- إعدادات ---
     function showSettings() {
+      const currentModel = MODELS[selectedModel];
       const settings = `
         الإعدادات الحالية:
-        • النماذج المحلية: مفعلة
-        • الوضع دون اتصال: مفعل
-        • اللغة: العربية
+        • النموذج الحالي: ${currentModel.name}
+        • الحجم التقريبي: ${currentModel.size}
+        • الوضع: دون اتصال (يعمل محلياً)
         
-        سيتم إضافة المزيد من الخيارات في التحديث القادم.
+        ملاحظة: سيتم تحميل النموذج كاملاً عند الاستخدام الأول (قد يستغرق 1-2 دقيقة).
       `;
       alert(settings);
     }
     
-    // تتبع حالة الاتصال
+    // --- تحديث حالة الاتصال ---
     function updateConnectionStatus() {
       const status = document.getElementById('connection-status');
-      const warning = document.getElementById('offline-warning');
       
       if (navigator.onLine) {
         status.innerHTML = '✅ متصك بالإنترنت';
         status.style.color = '#10b981';
-        
-        if (warning) {
-          warning.innerHTML = '✅ متصك بالإنترنت - يمكنك استخدام جميع الميزات';
-          warning.style.backgroundColor = '#dcfce7';
-          warning.style.color = '#166534';
-        }
       } else {
-        status.innerHTML = '❌ وضع دون اتصال';
+        status.innerHTML = '📴 يعمل بدون إنترنت';
         status.style.color = '#ef4444';
-        
-        if (warning) {
-          warning.innerHTML = '✅ الوضع دون اتصال - تعمل جميع النماذج المحلية';
-          warning.style.backgroundColor = '#dbeafe';
-          warning.style.color = '#1e40af';
-        }
       }
     }
     
-    // تحديث الحالة عند التحميل
+    // --- تهيئة الصفحة ---
     document.addEventListener('DOMContentLoaded', () => {
       updateConnectionStatus();
       
@@ -654,7 +675,7 @@
       window.addEventListener('online', updateConnectionStatus);
       window.addEventListener('offline', updateConnectionStatus);
       
-      // ضبط ارتفاع textarea تلقائيًا
+      // ضبط ارتفاع textarea
       const textarea = document.getElementById('question-input');
       textarea.addEventListener('input', function() {
         this.style.height = 'auto';
@@ -668,16 +689,17 @@
           sendQuestion();
         }
       });
-    });
-    
-    // دعم Service Worker
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
+      
+      // تهيئة النموذج
+      initModel();
+      
+      // دعم Service Worker
+      if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js')
           .then(reg => console.log('Service Worker registered:', reg))
           .catch(err => console.log('Service Worker failed:', err));
-      });
-    }
+      }
+    });
   </script>
 </body>
 </html>

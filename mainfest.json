@@ -21,15 +21,5 @@
       "type": "image/png"
     }
   ],
-  "permissions": ["microphone"],
-  "file_handlers": [
-    {
-      "action": "/handle-file",
-      "accept": {
-        "image/*": [".png", ".jpg", ".jpeg"],
-        "application/pdf": [".pdf"],
-        "text/plain": [".txt"]
-      }
-    }
-  ]
+  "gcm_sender_id": "117564533765"
 }

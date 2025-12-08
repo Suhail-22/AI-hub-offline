@@ -201,14 +201,15 @@
     }
     
     .input-box {
+      position: relative;
       display: flex;
+      align-items: flex-end;
       gap: 0.75rem;
-      align-items: center;
     }
     
     #question-input {
       flex: 1;
-      padding: 0.8rem 1.2rem;
+      padding: 0.8rem 1.2rem 0.8rem 4.5rem; /* مساحة لزر الميكروفون */
       border: 2px solid #cbd5e1;
       border-radius: var(--border-radius);
       font-family: 'Tajawal', sans-serif;
@@ -225,6 +226,38 @@
       box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.2);
     }
     
+    .action-buttons {
+      position: absolute;
+      left: 1rem;
+      bottom: 0.75rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .action-btn {
+      background: rgba(30, 64, 175, 0.1);
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      color: var(--primary);
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .action-btn:hover {
+      background: rgba(30, 64, 175, 0.2);
+      transform: scale(1.1);
+    }
+    
+    .action-btn:active {
+      transform: scale(0.95);
+    }
+    
     .send-btn {
       background: linear-gradient(90deg, var(--primary), var(--secondary));
       color: white;
@@ -236,6 +269,7 @@
       cursor: pointer;
       transition: all 0.3s ease;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      flex-shrink: 0;
     }
     
     .send-btn:hover {
@@ -281,6 +315,10 @@
       
       .model-icon-btn span {
         font-size: 0.75rem;
+      }
+      
+      #question-input {
+        padding: 0.8rem 1.2rem 0.8rem 4rem;
       }
     }
   </style>
@@ -359,6 +397,15 @@
     <!-- منطقة الإدخال -->
     <div class="input-container">
       <div class="input-box">
+        <div class="action-buttons">
+          <button class="action-btn" title="تسجيل صوتي" onclick="startRecording()">
+            🎤
+          </button>
+          <button class="action-btn" title="إضافة ملف" onclick="document.getElementById('file-input').click()">
+            📎
+          </button>
+          <input type="file" id="file-input" style="display: none;" onchange="handleFileUpload()">
+        </div>
         <textarea id="question-input" placeholder="اكتب سؤالك البرمجي هنا..." rows="1"></textarea>
         <button class="send-btn" onclick="sendQuestion()">
           ➤
@@ -374,6 +421,9 @@
   <script>
     // تتبع النموذج المختار
     let selectedModel = 'qwen3';
+    let isRecording = false;
+    let mediaRecorder;
+    let audioChunks = [];
     
     // اختيار نموذج
     function selectModel(model) {
@@ -443,6 +493,67 @@
       
       // تحديث حالة الاتصال
       updateConnectionStatus();
+    }
+    
+    // تسجيل الصوت
+    function startRecording() {
+      if (isRecording) {
+        stopRecording();
+        return;
+      }
+      
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('المتصفح لا يدعم تسجيل الصوت');
+        return;
+      }
+      
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+          
+          mediaRecorder.ondataavailable = event => {
+            audioChunks.push(event.data);
+          };
+          
+          mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            // هنا سيتم معالجة الصوت (سيتم دعمه عند الاتصال بالإنترنت)
+            alert('تم تسجيل الصوت! سيتم معالجته عند الاتصال بالإنترنت.');
+            const tracks = stream.getTracks();
+            tracks.forEach(track => track.stop());
+          };
+          
+          mediaRecorder.start();
+          isRecording = true;
+          event.target.innerHTML = '⏹️';
+          alert('جارٍ التسجيل... اضغط مرة أخرى للتوقف.');
+        })
+        .catch(err => {
+          console.error('Error accessing microphone:', err);
+          alert('فشل الوصول إلى الميكروفون: ' + err.message);
+        });
+    }
+    
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        isRecording = false;
+        event.target.innerHTML = '🎤';
+      }
+    }
+    
+    // رفع ملف
+    function handleFileUpload() {
+      const fileInput = document.getElementById('file-input');
+      const file = fileInput.files[0];
+      
+      if (file) {
+        // هنا سيُعالج الملف (سيتم دعمه عند الاتصال بالإنترنت)
+        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        alert(`تم اختيار الملف:\nالاسم: ${file.name}\nالحجم: ${fileSizeMB} MB\n\nسيتم معالجته عند الاتصال بالإنترنت.`);
+        fileInput.value = ''; // إعادة تعيين الملف
+      }
     }
     
     // مقارنة النماذج

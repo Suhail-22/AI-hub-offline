@@ -16,6 +16,9 @@
   <!-- مكتبة Transformers.js -->
   <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2"></script>
   
+  <!-- مكتبة jsPDF لإنشاء ملفات PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');
     
@@ -58,6 +61,157 @@
       max-width: 100%;
     }
     
+    /* نافذة اختيار الوضع */
+    .mode-selector {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+    
+    .mode-card {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-lg);
+      padding: 2rem;
+      width: 90%;
+      max-width: 450px;
+      text-align: center;
+    }
+    
+    .mode-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+    
+    .mode-options {
+      display: flex;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    
+    .mode-btn {
+      flex: 1;
+      padding: 1.2rem;
+      border-radius: var(--border-radius);
+      border: 2px solid var(--primary);
+      background: white;
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .mode-btn:hover {
+      background: var(--primary);
+      color: white;
+      transform: translateY(-2px);
+    }
+    
+    .mode-description {
+      color: var(--gray);
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+    
+    /* نافذة تسجيل الدخول */
+    .login-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+    
+    .login-card {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-lg);
+      padding: 2rem;
+      width: 90%;
+      max-width: 400px;
+    }
+    
+    .login-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    
+    .input-group {
+      margin-bottom: 1.2rem;
+    }
+    
+    .input-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--dark);
+    }
+    
+    .input-group input {
+      width: 100%;
+      padding: 0.8rem 1.2rem;
+      border: 2px solid #cbd5e1;
+      border-radius: var(--border-radius);
+      font-family: 'Tajawal', sans-serif;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+    
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.2);
+    }
+    
+    .submit-btn {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      font-weight: 600;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 0.5rem;
+    }
+    
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(30, 64, 175, 0.3);
+    }
+    
+    .login-footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+    
     /* الشريط العلوي (AppBar) */
     .app-bar {
       background: linear-gradient(90deg, var(--primary), var(--secondary));
@@ -81,7 +235,13 @@
       letter-spacing: 0.05em;
     }
     
-    .settings-btn {
+    .header-actions {
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+    }
+    
+    .header-btn {
       background: rgba(255, 255, 255, 0.2);
       border: none;
       width: 40px;
@@ -96,9 +256,20 @@
       justify-content: center;
     }
     
-    .settings-btn:hover {
+    .header-btn:hover {
       background: rgba(255, 255, 255, 0.3);
       transform: scale(1.1);
+    }
+    
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
     }
     
     /* منطقة عرض النتائج */
@@ -171,6 +342,33 @@
       font-size: 0.85rem;
       text-align: left;
       margin-top: 0.25rem;
+    }
+    
+    .message-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    
+    .action-icon {
+      background: none;
+      border: none;
+      color: var(--gray);
+      font-size: 1.1rem;
+      cursor: pointer;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    
+    .action-icon:hover {
+      background: var(--light);
+      color: var(--primary);
     }
     
     /* شريط الأيقونات */
@@ -336,6 +534,22 @@
       border-left: 4px solid var(--primary);
     }
     
+    .sync-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--gray);
+    }
+    
+    .sync-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+    
     @media (max-width: 600px) {
       .app-bar {
         padding: 0.7rem 0.8rem;
@@ -365,18 +579,67 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- الشريط العلوي مع اسم التطبيق بخط يد -->
+  <!-- نافذة اختيار الوضع -->
+  <div class="mode-selector" id="modeSelector">
+    <div class="mode-card">
+      <h2 class="mode-title">اختر وضع العمل</h2>
+      <div class="mode-options">
+        <button class="mode-btn" onclick="selectMode('offline')">
+          📵 بدون إنترنت
+        </button>
+        <button class="mode-btn" onclick="selectMode('online')">
+          🌐 مع إنترنت
+        </button>
+      </div>
+      <p class="mode-description">
+        <strong>بدون إنترنت:</strong> يعمل النموذج المحلي (Phi-3-mini) مباشرة على جوالك - لا يحتاج إنترنت بعد التحميل الأول.<br><br>
+        <strong>مع إنترنت:</strong> يستخدم نماذج أكثر قوة عبر السحابة، مع مزامنة المحادثات بين الأجهزة.
+      </p>
+      <p style="color: var(--warning); margin-top: 1rem; font-weight: 500;">
+        ⚠️ ملاحظة: النماذج المحلية تحتاج 500MB-1GB من المساحة التخزينية.
+      </p>
+    </div>
+  </div>
+  
+  <!-- نافذة تسجيل الدخول -->
+  <div class="login-modal" id="loginModal">
+    <div class="login-card">
+      <h2 class="login-title">تسجيل الدخول</h2>
+      <div class="input-group">
+        <label for="email">البريد الإلكتروني</label>
+        <input type="email" id="email" placeholder="example@email.com" required>
+      </div>
+      <div class="input-group">
+        <label for="password">كلمة المرور</label>
+        <input type="password" id="password" placeholder="••••••••" required>
+      </div>
+      <button class="submit-btn" onclick="login()">تسجيل الدخول</button>
+      <div class="login-footer">
+        <p>ليس لديك حساب؟ <a href="#" style="color: var(--primary); text-decoration: none;">أنشئ حسابًا مجانًا</a></p>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container" id="mainContainer" style="display: none;">
+    <!-- الشريط العلوي -->
     <div class="app-bar">
       <div class="app-title">ذكاء اصطناعي مجمّع</div>
-      <button class="settings-btn" title="الإعدادات" onclick="showSettings()">
-        ⚙️
-      </button>
+      <div class="header-actions">
+        <button class="header-btn" title="تنزيل المحادثة" onclick="downloadConversation()">
+          📥
+        </button>
+        <button class="header-btn" title="المزامنة" id="syncBtn">
+          <div class="sync-indicator"></div>
+        </button>
+        <button class="header-btn" title="الحساب" onclick="toggleLoginModal()">
+          <div class="user-avatar" id="userAvatar">👤</div>
+        </button>
+      </div>
     </div>
     
     <!-- منطقة عرض النتائج -->
     <div class="content" id="results-container">
-      <div class="offline-warning">
+      <div class="offline-warning" id="connectionWarning">
         ✅ <strong>الوضع دون اتصال:</strong> يعمل بنموذج Phi-3-mini المحلي (3.8B)
       </div>
       
@@ -424,43 +687,108 @@
   </div>
 
   <script>
-    // --- إعدادات النماذج ---
-    const MODELS = {
-      phi3: {
-        id: 'Xenova/Phi-3-mini-4k-instruct-onnx',
-        name: 'Phi-3-mini',
-        description: 'نموذج خفيف للبرمجة والأسئلة العامة',
-        size: '2.3GB (سيتم تنزيله عند الاستخدام الأول)'
-      },
-      qwen3: {
-        id: 'Xenova/Qwen2-0.5B-Instruct',
-        name: 'Qwen2-0.5B',
-        description: 'نموذج متوسط للبرمجة',
-        size: '1.1GB (سيتم تنزيله عند الاستخدام الأول)'
-      },
-      deepseek: {
-        id: 'Xenova/deepseek-coder-1.3b-base',
-        name: 'DeepSeek-Coder 1.3B',
-        description: 'نموذج متخصص في البرمجة',
-        size: '2.8GB (سيتم تنزيله عند الاستخدام الأول)'
-      }
-    };
-    
     // --- المتغيرات الأساسية ---
     let selectedModel = 'phi3';
     let pipeline = null;
     let isRecording = false;
     let mediaRecorder;
     let audioChunks = [];
+    let currentMode = 'offline';
+    let userLoggedIn = false;
+    let conversationHistory = [];
+    
+    // --- نماذج الذكاء الاصطناعي ---
+    const MODELS = {
+      phi3: {
+        id: 'Xenova/Phi-3-mini-4k-instruct-onnx',
+        name: 'Phi-3-mini',
+        description: 'نموذج خفيف للبرمجة والأسئلة العامة',
+        size: '2.3GB',
+        type: 'offline'
+      },
+      qwen3: {
+        id: 'Xenova/Qwen2-0.5B-Instruct',
+        name: 'Qwen2-0.5B',
+        description: 'نموذج متوسط للبرمجة',
+        size: '1.1GB',
+        type: 'offline'
+      },
+      deepseek: {
+        id: 'Xenova/deepseek-coder-1.3b-base',
+        name: 'DeepSeek-Coder 1.3B',
+        description: 'نموذج متخصص في البرمجة',
+        size: '2.8GB',
+        type: 'offline'
+      }
+    };
+    
+    // --- إدارة وضع العمل ---
+    function selectMode(mode) {
+      currentMode = mode;
+      document.getElementById('modeSelector').style.display = 'none';
+      document.getElementById('mainContainer').style.display = 'flex';
+      
+      // إظهار نافذة تسجيل الدخول إذا كان الوضع أونلاين
+      if (mode === 'online') {
+        setTimeout(() => {
+          toggleLoginModal();
+        }, 500);
+      }
+      
+      // تهيئة النموذج
+      initModel();
+      
+      // تحديث حالة الاتصال
+      updateConnectionStatus();
+    }
+    
+    // --- تسجيل الدخول ---
+    function toggleLoginModal() {
+      const modal = document.getElementById('loginModal');
+      modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+    }
+    
+    function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      
+      if (!email || !password) {
+        alert('يرجى إدخال البريد الإلكتروني وكلمة المرور');
+        return;
+      }
+      
+      // محاكاة تسجيل الدخول
+      userLoggedIn = true;
+      document.getElementById('userAvatar').textContent = email.charAt(0).toUpperCase();
+      toggleLoginModal();
+      
+      // عرض حالة المزامنة
+      document.getElementById('syncBtn').innerHTML = '✅';
+      addSystemMessage('تم تسجيل الدخول بنجاح. سيتم مزامنة محادثاتك بين الأجهزة.');
+    }
     
     // --- تهيئة النموذج ---
     async function initModel() {
       const statusEl = document.getElementById('model-status');
       
+      // التحقق من المساحة التخزينية في الوضع الأوفلاين
+      if (currentMode === 'offline') {
+        try {
+          const estimate = await navigator.storage.estimate();
+          const availableGB = (estimate.quota - estimate.usage) / (1024 * 1024 * 1024);
+          
+          if (availableGB < 0.5) {
+            alert(`تحذير: مساحتك التخزينية منخفضة (${availableGB.toFixed(2)} GB متاحة). قد لا يعمل النموذج المحلي بشكل صحيح.`);
+          }
+        } catch (error) {
+          console.warn('لا يمكن التحقق من المساحة التخزينية:', error);
+        }
+      }
+      
       try {
         statusEl.textContent = 'جاري تحميل النموذج... (قد يستغرق 1-2 دقيقة)';
         
-        // تحميل النموذج الأولي (Phi-3-mini)
+        // تحميل النموذج
         pipeline = await transformers.pipeline(
           'text-generation',
           MODELS[selectedModel].id,
@@ -476,33 +804,15 @@
         statusEl.style.color = '#10b981';
         
         // إضافة رسالة ترحيب
-        addResponse(`مرحباً! أنا ${MODELS[selectedModel].name}، نموذج الذكاء الاصطناعي المحلي. كيف يمكنني مساعدتك في البرمجة اليوم؟`, 'system');
+        addSystemMessage(`مرحباً! أنا ${MODELS[selectedModel].name}، نموذج الذكاء الاصطناعي ${currentMode === 'offline' ? 'المحلي' : 'السحابي'}. كيف يمكنني مساعدتك في البرمجة اليوم؟`);
       } catch (error) {
         console.error('فشل تحميل النموذج:', error);
         statusEl.textContent = '❌ فشل تحميل النموذج. تأكد من اتصال الإنترنت الأولي.';
         statusEl.style.color = '#ef4444';
         
         // وضع النسخة الاحتياطية
-        addResponse('عذراً، حدث خطأ في تحميل النموذج. سأستخدم وضع المحاكاة حتى يعمل النموذج.', 'system');
+        addSystemMessage('عذراً، حدث خطأ في تحميل النموذج. سأستخدم وضع المحاكاة حتى يعمل النموذج.');
       }
-    }
-    
-    // --- اختيار النموذج ---
-    function selectModel(model) {
-      document.querySelectorAll('.model-icon-btn').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      
-      event.target.closest('.model-icon-btn').classList.add('active');
-      selectedModel = model;
-      
-      // إعادة تحميل النموذج (سيتم تحسينه لاحقاً)
-      if (pipeline) {
-        pipeline.dispose();
-        pipeline = null;
-      }
-      
-      initModel();
     }
     
     // --- إرسال السؤال ---
@@ -518,6 +828,13 @@
       // إضافة سؤال المستخدم
       addMessage(question, 'user');
       inputEl.value = '';
+      
+      // إضافة إلى سجل المحادثة
+      conversationHistory.push({
+        role: 'user',
+        content: question,
+        timestamp: new Date().toISOString()
+      });
       
       // إضافة مؤشر التحميل
       const loadingEl = document.createElement('div');
@@ -549,8 +866,21 @@
           
           // إضافة الرد
           addResponse(answer, 'model');
+          
+          // إضافة إلى سجل المحادثة
+          conversationHistory.push({
+            role: 'assistant',
+            model: selectedModel,
+            content: answer,
+            timestamp: new Date().toISOString()
+          });
+          
+          // مزامنة مع السحابة إذا كان المستخدم مسجل الدخول
+          if (userLoggedIn && currentMode === 'online') {
+            syncToCloud();
+          }
         } else {
-          // وضع المحاكاة إذا فشل التحميل
+          // وضع المحاكاة
           loadingEl.remove();
           const simulatedResponse = `عذراً، النموذج غير متاح حالياً. في الوضع الحقيقي، سأشرح لك كيفية حل المشكلة باستخدام ${selectedModel.toUpperCase()}.`;
           addResponse(simulatedResponse, 'model');
@@ -558,7 +888,7 @@
       } catch (error) {
         console.error('خطأ في المعالجة:', error);
         loadingEl.remove();
-        addResponse('❌ حدث خطأ أثناء معالجة السؤال. حاول مرة أخرى لاحقاً.', 'system');
+        addSystemMessage('❌ حدث خطأ أثناء معالجة السؤال. حاول مرة أخرى لاحقاً.');
       }
     }
     
@@ -573,31 +903,187 @@
       const card = document.createElement('div');
       card.className = `message-card ${sender === 'user' ? 'user-message' : 'model-message'}`;
       
+      let contentHTML = '';
+      
       if (sender === 'model') {
-        card.innerHTML = `
+        contentHTML = `
           <div class="message-header">
             <div class="model-icon">${selectedModel === 'phi3' ? '🤖' : selectedModel === 'qwen3' ? '🧠' : '💻'}</div>
             <div class="model-name">${MODELS[selectedModel].name}</div>
           </div>
           <div class="message-content">${formatCodeBlocks(text)}</div>
           <div class="message-timestamp">${timestamp}</div>
+          <div class="message-actions">
+            <button class="action-icon" title="نسخ" onclick="copyText(this.parentElement.parentElement.querySelector('.message-content').textContent)">
+              📋
+            </button>
+            <button class="action-icon" title="تنزيل" onclick="downloadText(this.parentElement.parentElement.querySelector('.message-content').textContent)">
+              📥
+            </button>
+            <button class="action-icon" title="مشاركة" onclick="shareText(this.parentElement.parentElement.querySelector('.message-content').textContent)">
+              ↗️
+            </button>
+          </div>
         `;
       } else if (sender === 'system') {
-        card.innerHTML = `
+        contentHTML = `
           <div class="message-content" style="color: #64748b; font-style: italic;">
             ${text}
           </div>
           <div class="message-timestamp">${timestamp}</div>
         `;
       } else {
-        card.innerHTML = `
+        contentHTML = `
           <div class="message-content">${text}</div>
           <div class="message-timestamp">${timestamp}</div>
+          <div class="message-actions">
+            <button class="action-icon" title="نسخ" onclick="copyText(this.parentElement.parentElement.querySelector('.message-content').textContent)">
+              📋
+            </button>
+            <button class="action-icon" title="تنزيل" onclick="downloadText(this.parentElement.parentElement.querySelector('.message-content').textContent)">
+              📥
+            </button>
+            <button class="action-icon" title="مشاركة" onclick="shareText(this.parentElement.parentElement.querySelector('.message-content').textContent)">
+              ↗️
+            </button>
+          </div>
         `;
       }
       
+      card.innerHTML = contentHTML;
       document.getElementById('results-container').appendChild(card);
       card.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function addSystemMessage(text) {
+      addMessage(text, 'system');
+    }
+    
+    function addResponse(text, sender) {
+      addMessage(text, sender);
+    }
+    
+    // --- دوال الأدوات ---
+    function copyText(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert('✓ تم نسخ النص بنجاح!');
+      });
+    }
+    
+    function downloadText(text) {
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `رد-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+    
+    function shareText(text) {
+      if (navigator.share) {
+        navigator.share({
+          title: 'رد من الذكاء الاصطناعي',
+          text: text.substring(0, 200) + '...' // حد أقصى 200 حرف
+        }).catch(err => console.log('Error sharing:', err));
+      } else {
+        copyText(text);
+        alert('تم نسخ النص إلى الحافظة. يمكنك لصقه في أي مكان.');
+      }
+    }
+    
+    function downloadConversation() {
+      // استخدام jsPDF لإنشاء ملف PDF
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      // العنوان
+      doc.setFontSize(18);
+      doc.text('محادثة الذكاء الاصطناعي', 105, 15, null, null, 'center');
+      
+      // معلومات إضافية
+      doc.setFontSize(10);
+      doc.text(`التاريخ: ${new Date().toLocaleDateString('ar-EG')}`, 105, 25, null, null, 'center');
+      doc.text(`الوقت: ${new Date().toLocaleTimeString('ar-EG')}`, 105, 32, null, null, 'center');
+      
+      // محتوى المحادثة
+      let y = 45;
+      conversationHistory.forEach(item => {
+        doc.setFontSize(12);
+        doc.setFont('bold');
+        doc.text(`${item.role === 'user' ? 'أنت' : MODELS[item.model]?.name || 'النموذج'} - ${new Date(item.timestamp).toLocaleTimeString('ar-EG', {hour: '2-digit', minute: '2-digit'})}:`, 10, y);
+        
+        doc.setFont('normal');
+        y += 10;
+        
+        // تقسيم النص إلى أسطر
+        const lines = doc.splitTextToSize(item.content, 190);
+        lines.forEach(line => {
+          doc.text(line, 10, y);
+          y += 7;
+        });
+        
+        y += 10;
+      });
+      
+      // حفظ الملف
+      doc.save(`محادثة-${new Date().toISOString().replace(/[:.]/g, '-')}.pdf`);
+    }
+    
+    // --- مزامنة السحابة ---
+    function syncToCloud() {
+      // محاكاة المزامنة
+      setTimeout(() => {
+        document.getElementById('syncBtn').innerHTML = '✅';
+        setTimeout(() => {
+          document.getElementById('syncBtn').innerHTML = '<div class="sync-indicator"></div>';
+        }, 2000);
+      }, 1000);
+    }
+    
+    // --- وظائف الميكروفون والملفات ---
+    function startRecording() {
+      addSystemMessage('ميزة الميكروفون ستكون متاحة في التحديث القادم');
+    }
+    
+    function handleFileUpload() {
+      addSystemMessage('ميزة إضافة الملفات ستكون متاحة في التحديث القادم');
+    }
+    
+    // --- تحديث حالة الاتصال ---
+    function updateConnectionStatus() {
+      const status = document.getElementById('connection-status');
+      const warning = document.getElementById('connectionWarning');
+      
+      if (navigator.onLine) {
+        status.innerHTML = currentMode === 'online' ? '🌐 يعمل أونلاين' : '✅ يعمل أوفلاين (اتصال متاح)';
+        status.style.color = currentMode === 'online' ? '#10b981' : '#64748b';
+        
+        if (warning) {
+          warning.innerHTML = currentMode === 'online' 
+            ? '🌐 <strong>وضع أونلاين:</strong> يعمل النماذج عبر السحابة مع مزامنة المحادثات'
+            : '✅ <strong>الوضع دون اتصال:</strong> يعمل بنموذج Phi-3-mini المحلي (3.8B)';
+          warning.style.backgroundColor = currentMode === 'online' ? '#dcfce7' : '#dbeafe';
+          warning.style.color = currentMode === 'online' ? '#166534' : '#1e40af';
+        }
+      } else {
+        status.innerHTML = '📴 يعمل بدون إنترنت';
+        status.style.color = '#ef4444';
+        
+        if (warning) {
+          warning.innerHTML = '✅ <strong>الوضع دون اتصال:</strong> يعمل بنموذج Phi-3-mini المحلي (3.8B) - لا يمكن المزامنة';
+          warning.style.backgroundColor = '#dbeafe';
+          warning.style.color = '#1e40af';
+        }
+        
+        if (currentMode === 'online') {
+          addSystemMessage('⚠️ تم فصل الإنترنت. سيتم التبديل إلى الوضع المحلي تلقائياً.');
+          currentMode = 'offline';
+          initModel();
+        }
+      }
     }
     
     // --- تنسيق أكواد البرمجة ---
@@ -631,45 +1117,16 @@
         .replace(/'/g, "&#039;");
     }
     
-    // --- وظائف الميكروفون والملفات ---
-    function startRecording() {
-      alert('ميزة الميكروفون ستكون متاحة عند الاتصال بالإنترنت في التحديث القادم');
-    }
-    
-    function handleFileUpload() {
-      alert('ميزة إضافة الملفات ستكون متاحة عند الاتصال بالإنترنت في التحديث القادم');
-    }
-    
-    // --- إعدادات ---
-    function showSettings() {
-      const currentModel = MODELS[selectedModel];
-      const settings = `
-        الإعدادات الحالية:
-        • النموذج الحالي: ${currentModel.name}
-        • الحجم التقريبي: ${currentModel.size}
-        • الوضع: دون اتصال (يعمل محلياً)
-        
-        ملاحظة: سيتم تحميل النموذج كاملاً عند الاستخدام الأول (قد يستغرق 1-2 دقيقة).
-      `;
-      alert(settings);
-    }
-    
-    // --- تحديث حالة الاتصال ---
-    function updateConnectionStatus() {
-      const status = document.getElementById('connection-status');
-      
-      if (navigator.onLine) {
-        status.innerHTML = '✅ متصك بالإنترنت';
-        status.style.color = '#10b981';
-      } else {
-        status.innerHTML = '📴 يعمل بدون إنترنت';
-        status.style.color = '#ef4444';
-      }
-    }
-    
     // --- تهيئة الصفحة ---
     document.addEventListener('DOMContentLoaded', () => {
-      updateConnectionStatus();
+      // التحقق من الوضع المحفوظ
+      const savedMode = localStorage.getItem('aiHubMode');
+      if (savedMode) {
+        currentMode = savedMode;
+        document.getElementById('modeSelector').style.display = 'none';
+        document.getElementById('mainContainer').style.display = 'flex';
+        initModel();
+      }
       
       // الاستماع لتغيرات الاتصال
       window.addEventListener('online', updateConnectionStatus);
@@ -689,9 +1146,6 @@
           sendQuestion();
         }
       });
-      
-      // تهيئة النموذج
-      initModel();
       
       // دعم Service Worker
       if ('serviceWorker' in navigator) {

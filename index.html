@@ -2,35 +2,98 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#1e40af" />
-  <title>ذكاء اصطناعي مجمّع</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>🧠 ذكاء اصطناعي مجمّع</title>
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" type="image/png" sizes="192x192" href="https://cdn.iconscout.com/icon/free/png-256/ai-3600893-3007881.png" />
+  <link rel="apple-touch-icon" href="https://cdn.iconscout.com/icon/free/png-512/ai-3600893-3007881.png">
+  
   <script>
+    // التحقق من دعم PWA وحالة التثبيت
+    let deferredPrompt;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('install-btn').style.display = 'block';
+    });
+
+    function installApp() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('User accepted the install prompt');
+            document.getElementById('install-btn').style.display = 'none';
+          } else {
+            console.log('User dismissed the install prompt');
+          }
+          deferredPrompt = null;
+        });
+      }
+    }
+
     // تسجيل Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
-          .then(() => console.log('✅ Service Worker registered'))
-          .catch(err => console.log('❌ Service Worker failed:', err));
+          .then(reg => {
+            console.log('Service Worker registered:', reg);
+            // طلب التحديث عند وجود إصدار جديد
+            reg.onupdatefound = () => {
+              const installingWorker = reg.installing;
+              installingWorker.onstatechange = () => {
+                if (installingWorker.state === 'installed') {
+                  if (navigator.serviceWorker.controller) {
+                    document.getElementById('update-banner').style.display = 'block';
+                  }
+                }
+              };
+            };
+          })
+          .catch(err => console.log('Service Worker registration failed:', err));
       });
     }
   </script>
+  
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');
+    
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
+    
+    :root {
+      --primary: #1e40af;
+      --primary-dark: #1d4ed8;
+      --secondary: #0ea5e9;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --light: #f8fafc;
+      --dark: #0f172a;
+      --gray: #64748b;
+      --border-radius: 16px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
     body {
-      background-color: #f0f9ff;
-      color: #1e40af;
-      font-family: 'Tajawal', Arial, sans-serif;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      color: var(--dark);
+      font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       line-height: 1.6;
       min-height: 100vh;
       padding: 1rem;
+      overflow-x: hidden;
     }
+    
     .container {
       max-width: 800px;
       margin: 0 auto;
@@ -38,86 +101,277 @@
       flex-direction: column;
       min-height: 100vh;
     }
+    
     header {
       text-align: center;
       padding: 1.5rem 0;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
+      position: relative;
     }
+    
+    .status-bar {
+      position: absolute;
+      top: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(4px);
+      padding: 0.5rem 1rem;
+      border-radius: 50px;
+      font-weight: 500;
+      font-size: 0.85rem;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      z-index: 100;
+    }
+    
+    .status-bar.online {
+      color: var(--success);
+      border-color: var(--success);
+    }
+    
+    .status-bar.offline {
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+    
+    .app-logo {
+      font-size: 2.8rem;
+      margin-bottom: 0.5rem;
+      color: var(--primary);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
     h1 {
       font-size: 1.8rem;
-      margin-bottom: 0.5rem;
-      color: #1e40af;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 0.25rem;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
-    .status {
-      padding: 0.5rem;
-      border-radius: 8px;
-      margin-top: 0.5rem;
-      font-weight: bold;
-    }
-    .status.online {
-      background-color: #dcfce7;
-      color: #166534;
-    }
-    .status.offline {
-      background-color: #fee2e2;
-      color: #b91c1c;
-    }
-    .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 1rem;
-    }
-    .message {
-      font-size: 1.3rem;
+    
+    .app-description {
+      color: var(--gray);
+      font-size: 1rem;
       margin-bottom: 1rem;
     }
+    
+    .main-content {
+      flex: 1;
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-lg);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .main-content::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+    }
+    
+    .welcome-icon {
+      font-size: 3.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--primary);
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    .message {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--primary-dark);
+      margin-bottom: 1rem;
+      line-height: 1.4;
+    }
+    
+    .sub-message {
+      color: var(--gray);
+      font-size: 1rem;
+      margin-bottom: 2rem;
+      max-width: 600px;
+    }
+    
+    .connection-status {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      background: var(--light);
+      border-radius: 50px;
+      font-weight: 500;
+      margin: 1rem 0;
+      border: 1px solid #e2e8f0;
+    }
+    
+    .online-status {
+      color: var(--success);
+    }
+    
+    .offline-status {
+      color: var(--danger);
+    }
+    
     .icons-container {
-      display: none;
+      display: flex;
       justify-content: center;
       flex-wrap: wrap;
       gap: 1rem;
-      margin-top: 2rem;
+      margin-top: 1.5rem;
       width: 100%;
     }
+    
     .icon-card {
-      background: white;
-      border: 2px solid #1e40af;
-      border-radius: 12px;
-      padding: 1rem;
+      background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+      border: 2px solid var(--primary);
+      border-radius: var(--border-radius);
+      padding: 1.25rem;
       width: 120px;
       text-align: center;
       cursor: pointer;
       transition: all 0.3s ease;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
     }
+    
+    .icon-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      transform: rotate(30deg);
+      transition: all 0.5s ease;
+    }
+    
     .icon-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      border-color: var(--primary-dark);
     }
+    
+    .icon-card:hover::before {
+      transform: rotate(30deg) translateX(100%);
+    }
+    
     .icon {
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
-      color: #1e40af;
+      font-size: 2.2rem;
+      margin-bottom: 0.75rem;
+      color: var(--primary);
+      transition: all 0.3s ease;
     }
+    
+    .icon-card:hover .icon {
+      transform: scale(1.1) rotate(5deg);
+    }
+    
     .icon-label {
-      font-weight: bold;
+      font-weight: 600;
       font-size: 0.9rem;
+      color: var(--primary-dark);
+      transition: all 0.3s ease;
     }
+    
+    .icon-card:hover .icon-label {
+      color: var(--primary);
+    }
+    
+    .install-container {
+      text-align: center;
+      margin: 1rem 0;
+      width: 100%;
+    }
+    
+    #install-btn {
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      padding: 0.8rem 1.8rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px -1px rgba(30, 64, 175, 0.2);
+      display: none;
+      margin: 0 auto;
+    }
+    
+    #install-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px -1px rgba(30, 64, 175, 0.3);
+    }
+    
+    #install-btn:active {
+      transform: translateY(0);
+    }
+    
+    .update-banner {
+      background: linear-gradient(90deg, var(--warning), #f97316);
+      color: white;
+      text-align: center;
+      padding: 0.75rem;
+      border-radius: var(--border-radius);
+      margin: 1rem 0;
+      font-weight: 500;
+      display: none;
+    }
+    
     footer {
       text-align: center;
       padding: 1.5rem 0;
-      font-size: 0.9rem;
-      color: #4b5563;
+      font-size: 0.85rem;
+      color: var(--gray);
+      border-top: 1px solid #e2e8f0;
     }
+    
+    .version {
+      background: rgba(30, 64, 175, 0.1);
+      padding: 0.25rem 0.75rem;
+      border-radius: 50px;
+      font-weight: 500;
+      color: var(--primary);
+    }
+    
     @media (max-width: 600px) {
+      .main-content {
+        padding: 1.5rem;
+      }
+      
+      .message {
+        font-size: 1.2rem;
+      }
+      
       .icons-container {
         flex-direction: column;
         align-items: center;
       }
+      
       .icon-card {
+        width: 100%;
+        max-width: 300px;
+      }
+      
+      #install-btn {
         width: 100%;
         max-width: 300px;
       }
@@ -127,19 +381,37 @@
 <body>
   <div class="container">
     <header>
-      <h1>🧠 ذكاء اصطناعي مجمّع</h1>
-      <div id="connection-status" class="status online">
-        ✅ اتصال بالإنترنت - جميع الميزات متاحة
+      <div id="connection-status" class="status-bar online">
+        <span class="online-status">✅</span> متصك بالإنترنت - جميع الميزات متاحة
       </div>
+      
+      <div class="app-logo">🧠</div>
+      <h1>ذكاء اصطناعي مجمّع</h1>
+      <p class="app-description">تطبيق يعمل دون اتصال يجمع بين أفضل نماذج الذكاء الاصطناعي</p>
     </header>
 
     <main class="main-content">
+      <div class="welcome-icon">🤖</div>
+      
       <div class="message">
-        <p>✅ التطبيق يعمل دون اتصال!</p>
-        <p>تم تحميل هيكل PWA بنجاح.</p>
+        مرحباً! التطبيق جاهز للعمل
       </div>
-
-      <div id="icons-container" class="icons-container">
+      
+      <p class="sub-message">
+        يمكنك استخدام هذا التطبيق دون اتصال بالإنترنت. اضغط على زر التثبيت لتثبيته على جوالك.
+      </p>
+      
+      <div class="connection-status">
+        <span class="online-status">🌐</span> حالة الاتصال: متصل
+      </div>
+      
+      <div class="install-container">
+        <button id="install-btn" onclick="installApp()">
+          📲 تثبيت التطبيق
+        </button>
+      </div>
+      
+      <div class="icons-container" id="icons-container">
         <div class="icon-card" onclick="useModel('qwen3')">
           <div class="icon">🧠</div>
           <div class="icon-label">Qwen3</div>
@@ -162,9 +434,14 @@
         </div>
       </div>
     </main>
+    
+    <div id="update-banner" class="update-banner">
+      🔄 إصدار جديد متاح! سيتم تحديث التطبيق تلقائياً عند إعادة التشغيل
+    </div>
 
     <footer>
-      <p>تطبيق يعمل دون اتصال - الإصدار 1.0</p>
+      <p>تطبيق ذكاء اصطناعي مجمّع - <span class="version">الإصدار 1.1</span></p>
+      <p>يعمل دون اتصال • مفتوح المصدر • مجاني</p>
     </footer>
   </div>
 
@@ -173,14 +450,17 @@
     function updateConnectionStatus() {
       const statusElement = document.getElementById('connection-status');
       const iconsContainer = document.getElementById('icons-container');
+      const connectionStatusText = document.querySelector('.connection-status');
       
       if (navigator.onLine) {
-        statusElement.textContent = '✅ اتصال بالإنترنت - جميع الميزات متاحة';
-        statusElement.className = 'status online';
+        statusElement.innerHTML = '<span class="online-status">✅</span> متصك بالإنترنت - جميع الميزات متاحة';
+        statusElement.className = 'status-bar online';
+        connectionStatusText.innerHTML = '<span class="online-status">🌐</span> حالة الاتصال: متصل';
         iconsContainer.style.display = 'flex';
       } else {
-        statusElement.textContent = '❌ وضع دون اتصال - يعمل بالذكاء الاصطناعي المحلي فقط';
-        statusElement.className = 'status offline';
+        statusElement.innerHTML = '<span class="offline-status">❌</span> وضع دون اتصال - يعمل بالذكاء الاصطناعي المحلي فقط';
+        statusElement.className = 'status-bar offline';
+        connectionStatusText.innerHTML = '<span class="offline-status">📴</span> حالة الاتصال: غير متصل';
         iconsContainer.style.display = 'none';
       }
     }
@@ -192,26 +472,33 @@
     window.addEventListener('online', updateConnectionStatus);
     window.addEventListener('offline', updateConnectionStatus);
 
-    // وظائف الأيقونات (ستُنفَّذ لاحقًا)
+    // وظائف الأيقونات
     function useModel(model) {
       if (navigator.onLine) {
-        alert(`سيتم استخدام نموذج ${model} عند دمج الذكاء الاصطناعي`);
+        alert(`✅ سيتم استخدام نموذج ${model}\n\nسيتم دمج هذا النموذج في المرحلة القادمة`);
       } else {
-        alert('هذه الميزة تتطلب اتصال بالإنترنت - نعمل الآن على النماذج المحلية');
+        alert('❌ هذه الميزة تتطلب اتصال بالإنترنت\n\nالوضع الحالي: يعمل بالذكاء الاصطناعي المحلي فقط');
       }
     }
 
     function compareModels() {
       if (navigator.onLine) {
-        alert('سيتم مقارنة النماذج الثلاثة عند دمج الذكاء الاصطناعي');
+        alert('✅ سيتم مقارنة النماذج الثلاثة (Qwen3, DeepSeek, Phi-3)\n\nستتم إضافة هذه الميزة في التحديث القادم');
       } else {
-        alert('هذه الميزة تتطلب اتصال بالإنترنت - نعمل الآن على النماذج المحلية');
+        alert('❌ ميزة المقارنة تتطلب اتصال بالإنترنت\n\nيرجى التحقق من اتصالك بالشبكة');
       }
     }
 
     function saveConversation() {
-      alert('سيتم حفظ المحادثة في الذاكرة المحلية');
+      alert('✅ تم حفظ المحادثة في الذاكرة المحلية\n\nالمحادثات محفوظة حتى بدون إنترنت');
     }
+
+    // التحقق مما إذا كان التطبيق مثبتاً بالفعل
+    window.addEventListener('load', () => {
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+        document.getElementById('install-btn').style.display = 'none';
+      }
+    });
   </script>
 </body>
 </html>

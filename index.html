@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1e40af" />
+  <title>ذكاء اصطناعي مجمّع</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(() => console.log('✅ Service Worker registered'))
+          .catch(err => console.log('❌ Service Worker failed:', err));
+      });
+    }
+  </script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-color: #f0f9ff;
+      color: #1e40af;
+      font-family: 'Tajawal', Arial, sans-serif;
+      text-align: center;
+      padding: 1.5rem;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <h1>✅ التطبيق يعمل دون اتصال!</h1>
+  <p>تم تحميل هيكل PWA بنجاح.</p>
+  <p>بعد التثبيت، سيعمل هذا التطبيق حتى بدون إنترنت.</p>
+</body>
+</html>

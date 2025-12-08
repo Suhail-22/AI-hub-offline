@@ -98,7 +98,7 @@
       transform: scale(1.1);
     }
     
-    /* منطقة العرض */
+    /* منطقة عرض النتائج */
     .content {
       flex: 1;
       padding: 1.5rem;
@@ -109,20 +109,17 @@
     }
     
     /* بطاقة عرض النموذج */
-    .model-card {
+    .message-card {
       background: white;
       border-radius: var(--border-radius);
       box-shadow: var(--shadow-lg);
       padding: 1.2rem;
       transition: transform 0.2s ease;
       border-left: 4px solid var(--primary);
+      position: relative;
     }
     
-    .model-card:hover {
-      transform: translateY(-2px);
-    }
-    
-    .model-header {
+    .message-header {
       display: flex;
       align-items: center;
       gap: 0.75rem;
@@ -140,16 +137,24 @@
       color: var(--primary-dark);
     }
     
-    .model-response {
+    .message-content {
       line-height: 1.7;
       color: var(--dark);
+      margin-bottom: 0.5rem;
     }
     
-    .model-response code {
+    .message-content code {
       background: #f1f5f9;
       padding: 0.25rem 0.5rem;
       border-radius: 4px;
       font-family: monospace;
+    }
+    
+    .message-timestamp {
+      color: var(--gray);
+      font-size: 0.85rem;
+      text-align: right;
+      margin-top: 0.25rem;
     }
     
     /* شريط الأيقونات فوق صندوق الإدخال */
@@ -205,28 +210,31 @@
       display: flex;
       align-items: flex-end;
       gap: 0.75rem;
+      border: 2px solid #cbd5e1;
+      border-radius: var(--border-radius);
+      padding: 0.5rem 1rem;
+      background: #f8fafc;
     }
     
     #question-input {
       flex: 1;
-      padding: 0.8rem 1.2rem 0.8rem 4.5rem; /* مساحة لزر الميكروفون */
-      border: 2px solid #cbd5e1;
+      min-height: 60px;
+      padding: 0.8rem 4.5rem 0.8rem 4.5rem;
+      border: none;
       border-radius: var(--border-radius);
       font-family: 'Tajawal', sans-serif;
       font-size: 1rem;
       resize: none;
-      min-height: 50px;
-      max-height: 150px;
-      transition: border-color 0.3s ease;
+      transition: all 0.3s ease;
+      background: transparent;
+      outline: none;
     }
     
     #question-input:focus {
-      outline: none;
-      border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.2);
     }
     
-    .action-buttons {
+    .input-actions {
       position: absolute;
       left: 1rem;
       bottom: 0.75rem;
@@ -254,10 +262,6 @@
       transform: scale(1.1);
     }
     
-    .action-btn:active {
-      transform: scale(0.95);
-    }
-    
     .send-btn {
       background: linear-gradient(90deg, var(--primary), var(--secondary));
       color: white;
@@ -269,7 +273,10 @@
       cursor: pointer;
       transition: all 0.3s ease;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      flex-shrink: 0;
+      position: absolute;
+      right: 1rem;
+      bottom: 0.75rem;
+      z-index: 10;
     }
     
     .send-btn:hover {
@@ -318,7 +325,7 @@
       }
       
       #question-input {
-        padding: 0.8rem 1.2rem 0.8rem 4rem;
+        padding: 0.8rem 4rem;
       }
     }
   </style>
@@ -335,34 +342,37 @@
     
     <!-- منطقة عرض النتائج -->
     <div class="content" id="results-container">
-      <div class="model-card">
-        <div class="model-header">
+      <div class="message-card">
+        <div class="message-header">
           <div class="model-icon">🧠</div>
           <div class="model-name">Qwen3</div>
         </div>
-        <div class="model-response">
+        <div class="message-content">
           اكتب سؤالك في الأسفل لبدء المحادثة. هذا النموذج متاح للبرمجة وتحليل الأكواد.
         </div>
+        <div class="message-timestamp">10:30 ص</div>
       </div>
       
-      <div class="model-card">
-        <div class="model-header">
+      <div class="message-card">
+        <div class="message-header">
           <div class="model-icon">💻</div>
           <div class="model-name">DeepSeek-Coder</div>
         </div>
-        <div class="model-response">
+        <div class="message-content">
           نموذج متخصص في البرمجة فقط. مثالي لحل المشاكل البرمجية وشرح الأكواد.
         </div>
+        <div class="message-timestamp">10:32 ص</div>
       </div>
       
-      <div class="model-card">
-        <div class="model-header">
+      <div class="message-card">
+        <div class="message-header">
           <div class="model-icon">🤖</div>
           <div class="model-name">Phi-3</div>
         </div>
-        <div class="model-response">
+        <div class="message-content">
           نموذج خفيف وسريع للأسئلة العامة والبرمجة الأساسية. يعمل دون اتصال.
         </div>
+        <div class="message-timestamp">10:35 ص</div>
       </div>
       
       <div class="offline-warning" id="offline-warning">
@@ -397,7 +407,7 @@
     <!-- منطقة الإدخال -->
     <div class="input-container">
       <div class="input-box">
-        <div class="action-buttons">
+        <div class="input-actions">
           <button class="action-btn" title="تسجيل صوتي" onclick="startRecording()">
             🎤
           </button>
@@ -406,7 +416,7 @@
           </button>
           <input type="file" id="file-input" style="display: none;" onchange="handleFileUpload()">
         </div>
-        <textarea id="question-input" placeholder="اكتب سؤالك البرمجي هنا..." rows="1"></textarea>
+        <textarea id="question-input" placeholder="اكتب سؤالك البرمجي هنا..."></textarea>
         <button class="send-btn" onclick="sendQuestion()">
           ➤
         </button>
@@ -455,6 +465,9 @@
         return;
       }
       
+      // إضافة السؤال إلى المحادثة
+      addMessage(question, 'user');
+      
       // محاكاة الردود
       const models = ['qwen3', 'deepseek', 'phi3'];
       const responses = {
@@ -465,34 +478,67 @@
         'phi3': `لحل هذه المشكلة، يمكنك استخدام:\n- Python: [x*2 for x in arr]\n- JavaScript: arr.map(x => x*2)\n- Java: Arrays.stream(arr).map(x -> x*2).toArray()\n\nكل لغة لها طريقة مثلى حسب السياق. أي لغة تفضل؟`
       };
       
-      // تحديث واجهة المستخدم
-      document.getElementById('results-container').innerHTML = '';
-      
+      // إضافة ردود النماذج
       models.forEach(model => {
-        const card = document.createElement('div');
-        card.className = 'model-card';
-        card.innerHTML = `
-          <div class="model-header">
-            <div class="model-icon">${model === 'qwen3' ? '🧠' : model === 'deepseek' ? '💻' : '🤖'}</div>
-            <div class="model-name">${model === 'qwen3' ? 'Qwen3' : model === 'deepseek' ? 'DeepSeek-Coder' : 'Phi-3'}</div>
-          </div>
-          <div class="model-response">${responses[model]}</div>
-        `;
-        document.getElementById('results-container').appendChild(card);
+        setTimeout(() => {
+          addResponse(model, responses[model]);
+        }, 500 * (models.indexOf(model) + 1));
       });
-      
-      // إضافة تحذير الوضع دون اتصال
-      const warning = document.createElement('div');
-      warning.className = 'offline-warning';
-      warning.id = 'offline-warning';
-      warning.innerHTML = '✅ التطبيق يعمل دون اتصال - جميع النماذج المحلية متوفرة';
-      document.getElementById('results-container').appendChild(warning);
       
       // مسح حقل الإدخال
       document.getElementById('question-input').value = '';
       
       // تحديث حالة الاتصال
       updateConnectionStatus();
+    }
+    
+    // إضافة رسالة المستخدم
+    function addMessage(text, sender) {
+      const timestamp = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+      
+      const messageCard = document.createElement('div');
+      messageCard.className = 'message-card';
+      messageCard.innerHTML = `
+        <div class="message-content">${text}</div>
+        <div class="message-timestamp">${timestamp}</div>
+      `;
+      
+      if (sender === 'user') {
+        messageCard.style.borderLeft = '4px solid #0ea5e9';
+        messageCard.style.marginLeft = 'auto';
+        messageCard.style.maxWidth = '80%';
+      }
+      
+      document.getElementById('results-container').appendChild(messageCard);
+      
+      // التمرير إلى الرسالة الجديدة
+      messageCard.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    // إضافة رد النموذج
+    function addResponse(model, response) {
+      const timestamp = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+      const modelNames = {
+        'qwen3': 'Qwen3',
+        'deepseek': 'DeepSeek-Coder',
+        'phi3': 'Phi-3'
+      };
+      
+      const messageCard = document.createElement('div');
+      messageCard.className = 'message-card';
+      messageCard.innerHTML = `
+        <div class="message-header">
+          <div class="model-icon">${model === 'qwen3' ? '🧠' : model === 'deepseek' ? '💻' : '🤖'}</div>
+          <div class="model-name">${modelNames[model]}</div>
+        </div>
+        <div class="message-content">${response}</div>
+        <div class="message-timestamp">${timestamp}</div>
+      `;
+      
+      document.getElementById('results-container').appendChild(messageCard);
+      
+      // التمرير إلى الرسالة الجديدة
+      messageCard.scrollIntoView({ behavior: 'smooth' });
     }
     
     // تسجيل الصوت
@@ -634,4 +680,4 @@
     }
   </script>
 </body>
-  </html>
+</html>

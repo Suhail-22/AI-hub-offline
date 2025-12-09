@@ -2,52 +2,23 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#4e77f5" />
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Qwen Chat - ذكاء اصطناعي مجمّع</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Qwen Chat</title>
   <link rel="manifest" href="/manifest.json" />
-  <link rel="icon" type="image/png" sizes="192x192" href="https://cdn.iconscout.com/icon/free/png-256/ai-3600893-3007881.png" />
-  <link rel="apple-touch-icon" href="https://cdn.iconscout.com/icon/free/png-512/ai-3600893-3007881.png">
-  
-  <!-- خطوط Qwen الرسمية -->
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
-  
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    
-    :root {
-      --primary: #4e77f5;
-      --primary-dark: #3d63e0;
-      --secondary: #0ea5e9;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --light: #f8fafc;
-      --dark: #0f172a;
-      --gray: #64748b;
-      --border-radius: 16px;
-      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    }
-    
     body {
       background: #f5f7fa;
-      color: var(--dark);
+      color: #0f172a;
+      font-family: 'Tajawal', sans-serif;
       line-height: 1.6;
       min-height: 100vh;
-      padding: 0;
       margin: 0;
-      overflow-x: hidden;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
     }
     
-    /* الشريط العلوي */
-    .app-header {
+    .header {
       background: white;
       border-bottom: 1px solid #e2e8f0;
       padding: 1rem 1.5rem;
@@ -59,17 +30,11 @@
       z-index: 999;
     }
     
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-    
     .menu-btn {
       background: none;
       border: none;
       font-size: 1.5rem;
-      color: var(--gray);
+      color: #64748b;
       cursor: pointer;
     }
     
@@ -82,71 +47,58 @@
     
     .model-name {
       font-weight: 700;
-      color: var(--primary);
+      color: #4e77f5;
       font-size: 1.1rem;
     }
     
     .dropdown-arrow {
-      color: var(--gray);
+      color: #64748b;
       font-size: 0.8rem;
-    }
-    
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
     }
     
     .add-btn {
       background: none;
       border: none;
       font-size: 1.4rem;
-      color: var(--primary);
+      color: #4e77f5;
       cursor: pointer;
-      transition: all 0.2s ease;
     }
     
-    .add-btn:hover {
-      transform: scale(1.1);
-    }
-    
-    /* منطقة المحادثة */
-    .chat-container {
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
       max-width: 800px;
       margin: 0 auto;
-      padding: 1.5rem;
-      height: calc(100vh - 200px);
-      overflow-y: auto;
     }
     
-    .welcome-message {
+    .welcome {
       text-align: center;
       padding: 3rem 1.5rem;
-      color: var(--gray);
+      color: #64748b;
     }
     
-    .welcome-icon {
+    .robot-icon {
       font-size: 3.5rem;
-      color: var(--primary);
+      color: #4e77f5;
       margin-bottom: 1.5rem;
     }
     
     .welcome-title {
       font-size: 1.8rem;
-      color: var(--dark);
+      color: #0f172a;
       margin-bottom: 0.5rem;
     }
     
     .welcome-subtitle {
       font-size: 1.1rem;
-      color: var(--gray);
+      color: #64748b;
       max-width: 600px;
       margin: 0 auto 1.5rem;
       line-height: 1.6;
     }
     
-    /* شريط الأدوات */
-    .tools-bar {
+    .tools {
       display: flex;
       justify-content: center;
       gap: 0.75rem;
@@ -171,15 +123,14 @@
     
     .tool-btn:hover {
       background: #f1f5f9;
-      border-color: var(--primary);
+      border-color: #4e77f5;
     }
     
     .tool-icon {
       font-size: 1.2rem;
-      color: var(--primary);
+      color: #4e77f5;
     }
     
-    /* حقل الإدخال */
     .input-container {
       background: white;
       border-top: 1px solid #e2e8f0;
@@ -210,7 +161,7 @@
       resize: none;
       background: transparent;
       outline: none;
-      color: var(--dark);
+      color: #0f172a;
     }
     
     #question-input:focus {
@@ -228,7 +179,7 @@
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      color: var(--primary);
+      color: #4e77f5;
       font-size: 1.1rem;
       cursor: pointer;
       transition: all 0.2s ease;
@@ -247,7 +198,7 @@
       border: none;
       padding: 0.5rem 1rem;
       border-radius: 50px;
-      color: var(--primary);
+      color: #4e77f5;
       font-weight: 600;
       cursor: pointer;
       display: flex;
@@ -260,17 +211,13 @@
       background: rgba(78, 119, 245, 0.2);
     }
     
-    .thinking-icon {
-      font-size: 1.2rem;
-    }
-    
     .globe-btn {
       background: rgba(78, 119, 245, 0.1);
       border: none;
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      color: var(--primary);
+      color: #4e77f5;
       font-size: 1.1rem;
       cursor: pointer;
       transition: all 0.2s ease;
@@ -285,7 +232,7 @@
     }
     
     .send-btn {
-      background: var(--primary);
+      background: #4e77f5;
       color: white;
       border: none;
       width: 50px;
@@ -306,105 +253,8 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
     
-    /* الحالة دون اتصال */
-    .offline-banner {
-      background: #fffbeb;
-      color: #b45309;
-      padding: 0.5rem 1rem;
-      border-radius: var(--border-radius);
-      text-align: center;
-      font-weight: 500;
-      margin: 1rem 0;
-      display: none;
-    }
-    
-    /* نافذة التسجيل */
-    .login-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.85);
-      display: none;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      padding: 1rem;
-    }
-    
-    .login-card {
-      background: white;
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow-lg);
-      padding: 2rem;
-      width: 90%;
-      max-width: 400px;
-    }
-    
-    .login-title {
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 1.5rem;
-      text-align: center;
-    }
-    
-    .input-group {
-      margin-bottom: 1.2rem;
-    }
-    
-    .input-group label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      color: var(--dark);
-    }
-    
-    .input-group input {
-      width: 100%;
-      padding: 0.8rem 1.2rem;
-      border: 2px solid #cbd5e1;
-      border-radius: var(--border-radius);
-      font-size: 1rem;
-      transition: border-color 0.3s ease;
-    }
-    
-    .input-group input:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(78, 119, 245, 0.2);
-    }
-    
-    .submit-btn {
-      width: 100%;
-      padding: 1rem;
-      background: linear-gradient(90deg, var(--primary), var(--secondary));
-      color: white;
-      border: none;
-      border-radius: var(--border-radius);
-      font-weight: 600;
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      margin-top: 0.5rem;
-    }
-    
-    .submit-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(78, 119, 245, 0.3);
-    }
-    
-    .login-footer {
-      text-align: center;
-      margin-top: 1.5rem;
-      color: var(--gray);
-      font-size: 0.9rem;
-    }
-    
     @media (max-width: 768px) {
-      .tools-bar {
+      .tools {
         flex-direction: column;
         align-items: center;
       }
@@ -436,29 +286,25 @@
 </head>
 <body>
   <!-- الشريط العلوي -->
-  <div class="app-header">
-    <div class="header-left">
-      <button class="menu-btn">☰</button>
-      <div class="model-selector">
-        <span class="model-name">Qwen3-Max</span>
-        <span class="dropdown-arrow">▼</span>
-      </div>
+  <div class="header">
+    <div class="menu-btn">☰</div>
+    <div class="model-selector">
+      <span class="model-name">Qwen3-Max</span>
+      <span class="dropdown-arrow">▼</span>
     </div>
-    <div class="header-right">
-      <button class="add-btn">➕</button>
-    </div>
+    <div class="add-btn">➕</div>
   </div>
   
   <!-- منطقة المحادثة -->
-  <div class="chat-container">
-    <div class="welcome-message">
-      <div class="welcome-icon">🤖</div>
+  <div class="content">
+    <div class="welcome">
+      <div class="robot-icon">🤖</div>
       <h2 class="welcome-title">مساء الخير</h2>
       <p class="welcome-subtitle">اسأل Qwen، اعرف المزيد.</p>
     </div>
     
     <!-- شريط الأدوات -->
-    <div class="tools-bar">
+    <div class="tools">
       <button class="tool-btn">
         <span class="tool-icon">🎨</span>
         <span>Image Edit</span>
@@ -472,144 +318,26 @@
         <span>Image Generation</span>
       </button>
     </div>
-    
-    <!-- رسالة تذكيرية -->
-    <div class="offline-banner" id="offlineBanner">
-      ⚠️ الوضع دون اتصال - بعض الميزات قد لا تعمل
-    </div>
   </div>
   
   <!-- منطقة الإدخال -->
   <div class="input-container">
     <div class="input-box">
-      <button class="action-btn" title="إضافة" onclick="addContent()">
-        <span>➕</span>
-      </button>
+      <button class="action-btn">➕</button>
       
       <div class="input-actions">
         <button class="thinking-btn">
-          <span class="thinking-icon">🧠</span>
+          <span>🧠</span>
           <span>Thinking</span>
           <span>↓</span>
         </button>
         
-        <button class="globe-btn" title="العالم">
-          <span>🌐</span>
-        </button>
+        <button class="globe-btn">🌐</button>
       </div>
       
       <textarea id="question-input" placeholder="How can I help you today?"></textarea>
-      <button class="send-btn" onclick="sendQuestion()">
-        ➤
-      </button>
+      <button class="send-btn">➤</button>
     </div>
   </div>
-  
-  <!-- نافذة تسجيل الدخول -->
-  <div class="login-modal" id="loginModal">
-    <div class="login-card">
-      <h2 class="login-title">تسجيل الدخول</h2>
-      <div class="input-group">
-        <label for="email">البريد الإلكتروني</label>
-        <input type="email" id="email" placeholder="example@email.com" required>
-      </div>
-      <div class="input-group">
-        <label for="password">كلمة المرور</label>
-        <input type="password" id="password" placeholder="••••••••" required>
-      </div>
-      <button class="submit-btn" onclick="login()">تسجيل الدخول</button>
-      <div class="login-footer">
-        <p>ليس لديك حساب؟ <a href="#" style="color: var(--primary); text-decoration: none;">أنشئ حسابًا مجانًا</a></p>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // --- المتغيرات الأساسية ---
-    let currentModel = 'qwen3max';
-    let isLoggedIn = false;
-    let guestMode = true;
-    
-    // --- تبديل وضع الضيف ---
-    function toggleGuestMode() {
-      guestMode = !guestMode;
-      document.getElementById('guestMode').style.display = guestMode ? 'none' : 'block';
-    }
-    
-    // --- تسجيل الدخول ---
-    function toggleLoginModal() {
-      const modal = document.getElementById('loginModal');
-      modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
-    }
-    
-    function login() {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      
-      if (!email || !password) {
-        alert('يرجى إدخال البريد الإلكتروني وكلمة المرور');
-        return;
-      }
-      
-      // التحقق من صحة البريد الإلكتروني
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        alert('يرجى إدخال بريد إلكتروني صحيح');
-        return;
-      }
-      
-      isLoggedIn = true;
-      guestMode = false;
-      
-      // إغلاق نافذة التسجيل
-      toggleLoginModal();
-      
-      // تحديث واجهة المستخدم
-      document.querySelector('.login-btn').textContent = 'الحساب';
-      document.getElementById('guestMode').style.display = 'none';
-    }
-    
-    // --- إضافة محتوى ---
-    function addContent() {
-      alert('ميزة إضافة المحتوى ستكون متاحة في التحديث القادم');
-    }
-    
-    // --- إرسال السؤال ---
-    function sendQuestion() {
-      const input = document.getElementById('question-input');
-      const question = input.value.trim();
-      
-      if (!question) {
-        alert('يرجى كتابة سؤال أولاً');
-        return;
-      }
-      
-      // محاكاة إرسال السؤال
-      input.value = '';
-      document.querySelector('.welcome-message').style.display = 'none';
-      
-      // إظهار رسالة نموذجية
-      setTimeout(() => {
-        alert('سيتم معالجة سؤالك قريباً. في الإصدار النهائي، ستظهر الردود هنا.');
-      }, 500);
-    }
-    
-    // --- تهيئة الصفحة ---
-    document.addEventListener('DOMContentLoaded', () => {
-      // تحقق من حالة الاتصال
-      if (!navigator.onLine) {
-        document.getElementById('offlineBanner').style.display = 'block';
-      }
-      
-      // استمع لتغيرات الاتصال
-      window.addEventListener('online', () => {
-        document.getElementById('offlineBanner').style.display = 'none';
-      });
-      
-      window.addEventListener('offline', () => {
-        document.getElementById('offlineBanner').style.display = 'block';
-      });
-    });
-  </script>
 </body>
 </html>

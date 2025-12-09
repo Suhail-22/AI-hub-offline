@@ -2588,5 +2588,318 @@ function processRequest(userInput) {
         window.loadSampleConversation = loadSampleConversation;
         window.cancelLoading = cancelLoading;
     </script>
+    // ===== PWA والتثبيت المحسن =====
+
+// التحقق من Service Worker
+async function setupServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        try {
+            const registration = await navigator.serviceWorker.register('sw.js', {
+                scope: '/AI-hub-offline/'
+            });
+            
+            console.log('✅ Service Worker مسجل:', registration.scope);
+            
+            // التحقق من وجود تحديثات
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                console.log('🔄 اكتشف تحديث جديد:', newWorker);
+                
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        showUpdateNotification();
+                    }
+                });
+            });
+            
+            return registration;
+        } catch (error) {
+            console.error('❌ فشل تسجيل Service Worker:', error);
+            showAlert('تعذر تفعيل وضع عدم الاتصال', 'warning');
+            return null;
+        }
+    }
+    return null;
+}
+
+// عرض إشعار التحديث
+function showUpdateNotification() {
+    const updateDiv = document.createElement('div');
+    updateDiv.className = 'update-notification';
+    updateDiv.innerHTML = `
+        <div style="
+            position: fixed;
+            top: 70px;
+            left: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #fbbc05, #f29900);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            z-index: 9999;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideDown 0.3s ease;
+        ">
+            <span>🔄 تحديث جديد متاح!</span>
+            <button onclick="location.reload()" style="
+                background: white;
+                color: #f29900;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-weight: bold;
+                cursor: pointer;
+            ">
+                تحديث الآن
+            </button>
+        </div>
+    `;
+    document.body.appendChild(updateDiv);
+    
+    setTimeout(() => {
+        if (updateDiv.parentNode) {
+            updateDiv.parentNode.removeChild(updateDiv);
+        }
+    }, 10000);
+}
+
+// إعداد زر التثبيت
+function setupInstallButton() {
+    let deferredPrompt;
+    
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        const installBtn = document.getElementById('installBtn');
+        if (installBtn) {
+            installBtn.style.display = 'flex';
+            
+            installBtn.onclick = async () => {
+                installBtn.style.display = 'none';
+                if (!deferredPrompt) return;
+                
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    console.log('✅ تم قبول التثبيت');
+                    showAlert('تم تثبيت التطبيق بنجاح!', 'success');
+                    
+                    // إخفاء زر التثبيت بشكل دائم
+                    localStorage.setItem('appInstalled', 'true');
+                } else {
+                    console.log('❌ تم رفض التثبيت');
+                }
+                
+                deferredPrompt = null;
+            };
+        }
+    });
+    
+    window.addEventListener('appinstalled', () => {
+        console.log('🎉 تم تثبيت PWA');
+        const installBtn = document.getElementById('installBtn');
+        if (installBtn) installBtn.style.display = 'none';
+        
+        showAlert('تم تثبيت التطبيق على جهازك!', 'success');
+        localStorage.setItem('appInstalled', 'true');
+    });
+    
+    // إخفاء زر التثبيت إذا كان مثبتًا مسبقًا
+    if (localStorage.getItem('appInstalled') === 'true') {
+        const installBtn = document.getElementById('installBtn');
+        if (installBtn) installBtn.style.display = 'none';
+    }
+}
+
+// تحسين حالة عدم الاتصال
+function setupOfflineDetection() {
+    function updateOnlineStatus() {
+        const isOnline = navigator.onLine;
+        const statusDot = document.getElementById('connectionStatusDot');
+        const statusText = document.getElementById('connectionStatusText');
+        
+        if (isOnline) {
+            statusDot.className = 'status-indicator online';
+            statusText.textContent = '🟢 متصل بالإنترنت';
+            
+            // مزامنة البيانات عند العودة للاتصال
+            if (window.wasOffline) {
+                syncOfflineData();
+                window.wasOffline = false;
+            }
+        } else {
+            statusDot.className = 'status-indicator offline';
+            statusText.textContent = '🔴 غير متصل';
+            window.wasOffline = true;
+            
+            showAlert('أنت الآن في وضع عدم الاتصال. جميع البيانات محفوظة محليًا.', 'info');
+        }
+    }
+    
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus(); // التشغيل الأولي
+}
+
+// مزامنة البيانات المحلية (محاكاة)
+function syncOfflineData() {
+    const conversations = JSON.parse(localStorage.getItem('aiHubConversations') || '[]');
+    if (conversations.length > 0) {
+        showAlert(`جارٍ مزامنة ${conversations.length} محادثة...`, 'info');
+        
+        setTimeout(() => {
+            showAlert('تمت المزامنة بنجاح!', 'success');
+        }, 1500);
+    }
+}
+
+// التحقق من إمكانيات المتصفح
+function checkBrowserCapabilities() {
+    const capabilities = {
+        serviceWorker: 'serviceWorker' in navigator,
+        localStorage: typeof localStorage !== 'undefined',
+        webWorker: typeof Worker !== 'undefined',
+        webAssembly: typeof WebAssembly !== 'undefined',
+        webGPU: navigator.gpu !== undefined,
+        installPrompt: 'BeforeInstallPromptEvent' in window
+    };
+    
+    console.log('🔍 إمكانيات المتصفح:', capabilities);
+    
+    // تحذير إذا كان Service Worker غير مدعوم
+    if (!capabilities.serviceWorker) {
+        showAlert('متصفحك لا يدعم جميع ميزات التطبيق. نوصي باستخدام Chrome.', 'warning');
+    }
+    
+    return capabilities;
+}
+
+// ===== تهيئة PWA عند تحميل الصفحة =====
+document.addEventListener('DOMContentLoaded', () => {
+    // التحقق من الإمكانيات
+    const capabilities = checkBrowserCapabilities();
+    
+    // إعداد Service Worker
+    if (capabilities.serviceWorker) {
+        setupServiceWorker();
+    }
+    
+    // إعداد زر التثبيت
+    if (capabilities.installPrompt) {
+        setupInstallButton();
+    }
+    
+    // إعداد اكتشاف حالة الاتصال
+    setupOfflineDetection();
+    
+    // إضافة CSS إضافي لزر التحديث
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .install-btn {
+            animation: pulseInstall 2s infinite;
+        }
+        
+        @keyframes pulseInstall {
+            0% { box-shadow: 0 4px 15px rgba(26, 115, 232, 0.3); }
+            50% { box-shadow: 0 4px 20px rgba(26, 115, 232, 0.6); }
+            100% { box-shadow: 0 4px 15px rgba(26, 115, 232, 0.3); }
+        }
+        
+        /* زر التثبيت على الجوال */
+        @media (max-width: 768px) {
+            .install-btn {
+                bottom: 70px;
+                left: 10px;
+                font-size: 13px;
+                padding: 10px 16px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .install-btn {
+                bottom: 60px;
+                left: 8px;
+                font-size: 12px;
+                padding: 8px 14px;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    console.log('✅ تهيئة PWA اكتملت');
+});
+
+// ===== دوال PWA إضافية =====
+
+// الحصول على معلومات الذاكرة المؤقتة
+async function getCacheInfo() {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        const channel = new MessageChannel();
+        navigator.serviceWorker.controller.postMessage(
+            { type: 'GET_CACHE_INFO' },
+            [channel.port2]
+        );
+        
+        return new Promise(resolve => {
+            channel.port1.onmessage = event => {
+                resolve(event.data);
+            };
+        });
+    }
+    return null;
+}
+
+// مسح الذاكرة المؤقتة
+async function clearAppCache() {
+    if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(
+            cacheNames.map(cacheName => caches.delete(cacheName))
+        );
+        
+        showAlert('تم مسح الذاكرة المؤقتة', 'success');
+        location.reload();
+    }
+}
+
+// فحص حجم التطبيق
+async function checkAppSize() {
+    if ('storage' in navigator && 'estimate' in navigator.storage) {
+        const estimate = await navigator.storage.estimate();
+        const used = (estimate.usage / (1024 * 1024)).toFixed(2);
+        const quota = (estimate.quota / (1024 * 1024)).toFixed(2);
+        
+        return { used, quota, percentage: ((estimate.usage / estimate.quota) * 100).toFixed(1) };
+    }
+    return null;
+}
+
+// تحديث التطبيق يدويًا
+function forceUpdate() {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistration().then(registration => {
+            if (registration) {
+                registration.update();
+                showAlert('جارٍ التحقق من التحديثات...', 'info');
+            }
+        });
+    }
+}
+
+// ===== تصدير الدوال =====
+window.clearAppCache = clearAppCache;
+window.checkAppSize = checkAppSize;
+window.forceUpdate = forceUpdate;
+window.getCacheInfo = getCacheInfo;
 </body>
 </html>

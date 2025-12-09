@@ -1,4 +1,64 @@
-// ===== التهيئة والتكوين =====
+// ===== دالة تثبيت PWA =====
+function installPWA() {
+    const installButton = document.createElement('button');
+    installButton.id = 'installButton';
+    installButton.innerHTML = '<i class="fas fa-download"></i> تثبيت التطبيق';
+    installButton.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        left: 20px;
+        background: linear-gradient(135deg, #1a73e8, #0d47a1);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 25px;
+        font-family: 'Tajawal', sans-serif;
+        font-size: 14px;
+        cursor: pointer;
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        display: none;
+        align-items: center;
+        gap: 8px;
+        animation: pulse 2s infinite;
+    `;
+    
+    document.body.appendChild(installButton);
+    
+    let deferredPrompt;
+    
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installButton.style.display = 'flex';
+        
+        installButton.onclick = () => {
+            installButton.style.display = 'none';
+            deferredPrompt.prompt();
+            
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('تم تثبيت التطبيق بنجاح');
+                    showAlert('تم تثبيت التطبيق على جهازك!', 'success');
+                } else {
+                    console.log('تم رفض التثبيت');
+                }
+                deferredPrompt = null;
+            });
+        };
+    });
+    
+    window.addEventListener('appinstalled', () => {
+        console.log('PWA installed successfully');
+        installButton.style.display = 'none';
+        deferredPrompt = null;
+    });
+}
+
+// استدعاء دالة التثبيت عند تحميل الصفحة
+window.addEventListener('DOMContentLoaded', () => {
+    installPWA();
+});// ===== التهيئة والتكوين =====
 class AIHubApp {
     constructor() {
         this.currentModel = 'phi3';

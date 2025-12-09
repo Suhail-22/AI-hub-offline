@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#1e40af" />
+  <meta name="theme-color" content="#4e77f5" />
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Qwen Chat - ذكاء اصطناعي مجمّع</title>
   <link rel="manifest" href="/manifest.json" />
@@ -12,6 +12,7 @@
   
   <!-- خطوط Qwen الرسمية -->
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+  
   <style>
     * {
       margin: 0;
@@ -55,40 +56,58 @@
       align-items: center;
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 999;
+    }
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .menu-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--gray);
+      cursor: pointer;
     }
     
     .model-selector {
       display: flex;
       align-items: center;
-      gap: 1rem;
-      font-weight: 500;
+      gap: 0.5rem;
+      position: relative;
     }
     
     .model-name {
-      color: var(--primary);
       font-weight: 700;
+      color: var(--primary);
       font-size: 1.1rem;
     }
     
     .dropdown-arrow {
       color: var(--gray);
-      font-size: 1.2rem;
+      font-size: 0.8rem;
     }
     
-    .login-btn {
-      background: var(--primary);
-      color: white;
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .add-btn {
+      background: none;
       border: none;
-      padding: 0.6rem 1.2rem;
-      border-radius: 50px;
-      font-weight: 600;
+      font-size: 1.4rem;
+      color: var(--primary);
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
     }
     
-    .login-btn:hover {
-      background: var(--primary-dark);
+    .add-btn:hover {
+      transform: scale(1.1);
     }
     
     /* منطقة المحادثة */
@@ -126,7 +145,41 @@
       line-height: 1.6;
     }
     
-    /* منطقة الإدخال */
+    /* شريط الأدوات */
+    .tools-bar {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      margin: 1.5rem 0;
+      flex-wrap: wrap;
+    }
+    
+    .tool-btn {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 50px;
+      padding: 0.6rem 1.2rem;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 120px;
+      justify-content: center;
+    }
+    
+    .tool-btn:hover {
+      background: #f1f5f9;
+      border-color: var(--primary);
+    }
+    
+    .tool-icon {
+      font-size: 1.2rem;
+      color: var(--primary);
+    }
+    
+    /* حقل الإدخال */
     .input-container {
       background: white;
       border-top: 1px solid #e2e8f0;
@@ -138,25 +191,26 @@
     
     .input-box {
       display: flex;
-      align-items: flex-end;
+      align-items: center;
       gap: 0.75rem;
+      position: relative;
       border: 1px solid #cbd5e1;
-      border-radius: var(--border-radius);
+      border-radius: 50px;
       padding: 0.5rem 1rem;
       background: #f8fafc;
-      position: relative;
     }
     
     #question-input {
       flex: 1;
-      min-height: 60px;
-      padding: 0.8rem 1.2rem;
+      min-height: 50px;
+      padding: 0.6rem 1.2rem;
       border: none;
-      border-radius: var(--border-radius);
+      border-radius: 50px;
       font-size: 1rem;
       resize: none;
       background: transparent;
       outline: none;
+      color: var(--dark);
     }
     
     #question-input:focus {
@@ -164,9 +218,6 @@
     }
     
     .input-actions {
-      position: absolute;
-      left: 1rem;
-      bottom: 0.75rem;
       display: flex;
       gap: 0.5rem;
     }
@@ -191,33 +242,29 @@
       transform: scale(1.1);
     }
     
-    .send-btn {
-      background: var(--primary);
-      color: white;
+    .thinking-btn {
+      background: rgba(78, 119, 245, 0.1);
       border: none;
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      font-size: 1.4rem;
+      padding: 0.5rem 1rem;
+      border-radius: 50px;
+      color: var(--primary);
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      position: absolute;
-      right: 1rem;
-      bottom: 0.75rem;
-      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
     }
     
-    .send-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    .thinking-btn:hover {
+      background: rgba(78, 119, 245, 0.2);
     }
     
-    /* ترس الإعدادات */
-    .settings-btn {
-      position: absolute;
-      left: 1rem;
-      bottom: 0.75rem;
+    .thinking-icon {
+      font-size: 1.2rem;
+    }
+    
+    .globe-btn {
       background: rgba(78, 119, 245, 0.1);
       border: none;
       width: 36px;
@@ -232,36 +279,31 @@
       justify-content: center;
     }
     
-    /* شريط الأدوات */
-    .tools-bar {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin: 1.5rem 0;
-      flex-wrap: wrap;
+    .globe-btn:hover {
+      background: rgba(78, 119, 245, 0.2);
+      transform: scale(1.1);
     }
     
-    .tool-btn {
-      background: white;
-      border: 1px solid #cbd5e1;
-      border-radius: 50px;
-      padding: 0.6rem 1.2rem;
-      font-size: 0.95rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+    .send-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      font-size: 1.4rem;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      position: absolute;
+      right: 0.5rem;
+      top: 0.5rem;
+      z-index: 10;
     }
     
-    .tool-btn:hover {
-      background: #f1f5f9;
-      border-color: var(--primary);
-    }
-    
-    .tool-icon {
-      font-size: 1.2rem;
-      color: var(--primary);
+    .send-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
     
     /* الحالة دون اتصال */
@@ -361,109 +403,33 @@
       font-size: 0.9rem;
     }
     
-    /* وضع الضيف */
-    .guest-mode {
-      text-align: center;
-      padding: 1.5rem;
-      color: var(--gray);
-      font-size: 0.9rem;
-    }
-    
-    .guest-btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 0.6rem 1.2rem;
-      border-radius: 50px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 1rem;
-    }
-    
-    /* وضع الإعدادات */
-    .settings-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.85);
-      display: none;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      padding: 1rem;
-    }
-    
-    .settings-card {
-      background: white;
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow-lg);
-      padding: 2rem;
-      width: 90%;
-      max-width: 450px;
-    }
-    
-    .settings-title {
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 1.5rem;
-      text-align: center;
-    }
-    
-    .setting-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 0;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    
-    .setting-label {
-      font-weight: 500;
-      color: var(--dark);
-    }
-    
-    .setting-toggle {
-      width: 50px;
-      height: 24px;
-      background: #cbd5e1;
-      border-radius: 50px;
-      position: relative;
-      cursor: pointer;
-    }
-    
-    .toggle-circle {
-      width: 20px;
-      height: 20px;
-      background: white;
-      border-radius: 50%;
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      transition: all 0.3s ease;
-    }
-    
-    .setting-toggle.active {
-      background: var(--primary);
-    }
-    
-    .setting-toggle.active .toggle-circle {
-      left: 28px;
-    }
-    
-    @media (max-width: 600px) {
-      .app-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-      }
-      
+    @media (max-width: 768px) {
       .tools-bar {
         flex-direction: column;
         align-items: center;
+      }
+      
+      .tool-btn {
+        width: 100%;
+        max-width: 300px;
+      }
+      
+      .input-box {
+        padding: 0.5rem;
+      }
+      
+      .input-actions {
+        gap: 0.25rem;
+      }
+      
+      .thinking-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+      }
+      
+      .send-btn {
+        width: 45px;
+        height: 45px;
       }
     }
   </style>
@@ -471,11 +437,16 @@
 <body>
   <!-- الشريط العلوي -->
   <div class="app-header">
-    <div class="model-selector">
-      <div class="model-name">كوين-3 ماكس</div>
-      <div class="dropdown-arrow">▼</div>
+    <div class="header-left">
+      <button class="menu-btn">☰</button>
+      <div class="model-selector">
+        <span class="model-name">Qwen3-Max</span>
+        <span class="dropdown-arrow">▼</span>
+      </div>
     </div>
-    <button class="login-btn" onclick="toggleLoginModal()">تسجيل الدخول</button>
+    <div class="header-right">
+      <button class="add-btn">➕</button>
+    </div>
   </div>
   
   <!-- منطقة المحادثة -->
@@ -490,19 +461,15 @@
     <div class="tools-bar">
       <button class="tool-btn">
         <span class="tool-icon">🎨</span>
-        <span>تعديل الصورة</span>
+        <span>Image Edit</span>
       </button>
       <button class="tool-btn">
         <span class="tool-icon">📝</span>
-        <span>ويب ديف</span>
-      </button>
-      <button class="tool-btn">
-        <span class="tool-icon">🎓</span>
-        <span>البحوث العلمية</span>
+        <span>Web Dev</span>
       </button>
       <button class="tool-btn">
         <span class="tool-icon">🎨</span>
-        <span>التصميمات</span>
+        <span>Image Generation</span>
       </button>
     </div>
     
@@ -515,18 +482,20 @@
   <!-- منطقة الإدخال -->
   <div class="input-container">
     <div class="input-box">
-      <button class="settings-btn" title="الإعدادات" onclick="toggleSettingsModal()">
-        ⚙️
+      <button class="action-btn" title="إضافة" onclick="addContent()">
+        <span>➕</span>
       </button>
       
       <div class="input-actions">
-        <button class="action-btn" title="تسجيل صوتي" onclick="startRecording()">
-          🎤
+        <button class="thinking-btn">
+          <span class="thinking-icon">🧠</span>
+          <span>Thinking</span>
+          <span>↓</span>
         </button>
-        <button class="action-btn" title="إضافة ملف" onclick="document.getElementById('file-input').click()">
-          📎
+        
+        <button class="globe-btn" title="العالم">
+          <span>🌐</span>
         </button>
-        <input type="file" id="file-input" style="display: none;" onchange="handleFileUpload()">
       </div>
       
       <textarea id="question-input" placeholder="How can I help you today?"></textarea>
@@ -554,40 +523,10 @@
       </div>
     </div>
   </div>
-  
-  <!-- وضع الضيف -->
-  <div class="guest-mode" id="guestMode" style="display: none;">
-    <p>أنت تستخدم وضع الضيف</p>
-    <button class="guest-btn" onclick="toggleLoginModal()">سجّل الدخول للحصول على ميزات إضافية</button>
-  </div>
-  
-  <!-- نافذة الإعدادات -->
-  <div class="settings-modal" id="settingsModal">
-    <div class="settings-card">
-      <h2 class="settings-title">الإعدادات</h2>
-      
-      <div class="setting-item">
-        <div class="setting-label">الوضع دون اتصال</div>
-        <div class="setting-toggle" id="offlineToggle" onclick="toggleOfflineMode()">
-          <div class="toggle-circle"></div>
-        </div>
-      </div>
-      
-      <div class="setting-item">
-        <div class="setting-label">اللغة</div>
-        <div>العربية</div>
-      </div>
-      
-      <div class="setting-item">
-        <div class="setting-label">النماذج المتاحة</div>
-        <div>Qwen-3-Max</div>
-      </div>
-    </div>
-  </div>
 
   <script>
     // --- المتغيرات الأساسية ---
-    let isOffline = false;
+    let currentModel = 'qwen3max';
     let isLoggedIn = false;
     let guestMode = true;
     
@@ -630,27 +569,9 @@
       document.getElementById('guestMode').style.display = 'none';
     }
     
-    // --- تبديل وضع أونلاين/أوفلاين ---
-    function toggleOfflineMode() {
-      isOffline = !isOffline;
-      const toggle = document.getElementById('offlineToggle');
-      
-      if (isOffline) {
-        toggle.classList.add('active');
-        document.getElementById('offlineBanner').style.display = 'block';
-      } else {
-        toggle.classList.remove('active');
-        document.getElementById('offlineBanner').style.display = 'none';
-      }
-    }
-    
-    // --- وظائف الميكروفون والملفات ---
-    function startRecording() {
-      alert('ميزة التسجيل الصوتي ستكون متاحة في التحديث القادم');
-    }
-    
-    function handleFileUpload() {
-      alert('ميزة إضافة الملفات ستكون متاحة في التحديث القادم');
+    // --- إضافة محتوى ---
+    function addContent() {
+      alert('ميزة إضافة المحتوى ستكون متاحة في التحديث القادم');
     }
     
     // --- إرسال السؤال ---

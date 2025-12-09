@@ -15,11 +15,6 @@
       "type": "image/png"
     },
     {
-      "src": "https://img.icons8.com/color/144/000000/artificial-intelligence.png",
-      "sizes": "144x144",
-      "type": "image/png"
-    },
-    {
       "src": "https://img.icons8.com/color/192/000000/artificial-intelligence.png",
       "sizes": "192x192",
       "type": "image/png",
@@ -31,17 +26,5 @@
       "type": "image/png"
     }
   ],
-  "shortcuts": [
-    {
-      "name": "محادثة جديدة",
-      "url": "./index.html?new=true",
-      "description": "بدء محادثة جديدة"
-    },
-    {
-      "name": "مقارنة النماذج",
-      "url": "./index.html?compare=true",
-      "description": "مقارنة نماذج الذكاء الاصطناعي"
-    }
-  ],
-  "categories": ["productivity", "utilities", "education"]
+  "categories": ["productivity", "utilities"]
 }

@@ -1,64 +1,4 @@
-// ===== دالة تثبيت PWA =====
-function installPWA() {
-    const installButton = document.createElement('button');
-    installButton.id = 'installButton';
-    installButton.innerHTML = '<i class="fas fa-download"></i> تثبيت التطبيق';
-    installButton.style.cssText = `
-        position: fixed;
-        bottom: 80px;
-        left: 20px;
-        background: linear-gradient(135deg, #1a73e8, #0d47a1);
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 25px;
-        font-family: 'Tajawal', sans-serif;
-        font-size: 14px;
-        cursor: pointer;
-        z-index: 10000;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        display: none;
-        align-items: center;
-        gap: 8px;
-        animation: pulse 2s infinite;
-    `;
-    
-    document.body.appendChild(installButton);
-    
-    let deferredPrompt;
-    
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        installButton.style.display = 'flex';
-        
-        installButton.onclick = () => {
-            installButton.style.display = 'none';
-            deferredPrompt.prompt();
-            
-            deferredPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('تم تثبيت التطبيق بنجاح');
-                    showAlert('تم تثبيت التطبيق على جهازك!', 'success');
-                } else {
-                    console.log('تم رفض التثبيت');
-                }
-                deferredPrompt = null;
-            });
-        };
-    });
-    
-    window.addEventListener('appinstalled', () => {
-        console.log('PWA installed successfully');
-        installButton.style.display = 'none';
-        deferredPrompt = null;
-    });
-}
-
-// استدعاء دالة التثبيت عند تحميل الصفحة
-window.addEventListener('DOMContentLoaded', () => {
-    installPWA();
-});// ===== التهيئة والتكوين =====
+// ===== تهيئة التطبيق =====
 class AIHubApp {
     constructor() {
         this.currentModel = 'phi3';
@@ -70,7 +10,7 @@ class AIHubApp {
         this.isLoading = false;
         this.thinkingMode = false;
         this.voiceRecording = false;
-        this.highlightedMessages = new Set(); // لتتبع الرسائل المميزة
+        this.highlightedMessages = new Set();
         
         this.models = {
             phi3: {
@@ -99,127 +39,331 @@ class AIHubApp {
         this.init();
     }
 
-    // ===== التهيئة الأولية =====
     async init() {
-        console.log('🚀 تهيئة مركز الذكاء الاصطناعي...');
+        console.log('🚀 بدء تشغيل مركز الذكاء الاصطناعي...');
         
-        // تحميل الإعدادات
         this.loadSettings();
-        
-        // تهيئة واجهة المستخدم
         this.initUI();
-        
-        // تسجيل Service Worker
         this.registerServiceWorker();
-        
-        // تحديث حالة التخزين
         this.updateStorageInfo();
         
-        console.log('✅ التهيئة اكتملت بنجاح');
+        console.log('✅ التهيئة اكتملت');
         this.showAlert('مرحبًا بك في مركز الذكاء الاصطناعي!', 'success');
     }
 
-    // ===== إدارة الواجهة =====
     initUI() {
-        // إضافة المستمعين للأحداث
         this.addEventListeners();
-        
-        // تطبيق الوضع المظلم
         this.applyTheme();
-        
-        // عرض رسالة ترحيب
         this.showWelcomeMessage();
-        
-        // تحميل المحادثات السابقة
         this.loadPreviousConversations();
+        
+        // إضافة زر التثبيت
+        this.addInstallButton();
     }
 
     addEventListeners() {
-        // زر الإرسال
         document.getElementById('sendButton').addEventListener('click', () => this.sendMessage());
         
-        // الإدخال بالضغط على Enter
         document.getElementById('messageInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 this.sendMessage();
             }
         });
-        
-        // التبديل بين أوضاع التسجيل
-        document.querySelectorAll('.login-option').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.login-option').forEach(b => b.classList.remove('active'));
-                e.currentTarget.classList.add('active');
-                this.toggleLoginForm(e.currentTarget.textContent.includes('البريد') ? 'email' : 'guest');
-            });
-        });
     }
 
-    // ===== إدارة المحادثات =====
-    async sendMessage() {
-        const input = document.getElementById('messageInput');
-        const message = input.value.trim();
-        
-        if (!message) return;
-        
-        // إضافة رسالة المستخدم
-        this.addMessage('user', message);
-        input.value = '';
-        this.autoResize(input);
-        
-        // عرض رسالة "جارٍ التفكير"
-        const thinkingMsgId = this.showThinkingMessage();
-        
-        try {
-            // معالجة الرسالة حسب النموذج
-            let response;
+    // ===== إضافة زر التثبيت =====
+    addInstallButton() {
+        if ('serviceWorker' in navigator && 'BeforeInstallPromptEvent' in window) {
+            const installBtn = document.createElement('button');
+            installBtn.id = 'pwaInstallBtn';
+            installBtn.className = 'pwa-install-btn';
+            installBtn.innerHTML = '<i class="fas fa-download"></i> تثبيت التطبيق';
+            installBtn.style.cssText = `
+                position: fixed;
+                bottom: 100px;
+                left: 20px;
+                background: linear-gradient(135deg, #1a73e8, #0d47a1);
+                color: white;
+                border: none;
+                padding: 12px 20px;
+                border-radius: 25px;
+                font-family: 'Tajawal', sans-serif;
+                font-size: 14px;
+                cursor: pointer;
+                z-index: 10000;
+                box-shadow: 0 4px 15px rgba(26, 115, 232, 0.3);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                animation: pulseInstall 2s infinite;
+                transition: all 0.3s;
+            `;
             
-            if (this.isCompareMode) {
-                // وضع المقارنة
-                response = await this.processComparison(message);
-            } else {
-                // وضع النموذج الواحد
-                response = await this.processMessage(message);
-            }
+            document.body.appendChild(installBtn);
             
-            // إزالة رسالة "جارٍ التفكير"
-            this.removeThinkingMessage(thinkingMsgId);
+            let deferredPrompt;
             
-            // إضافة رد النموذج مع إمكانية التمييز
-            const messageId = this.addMessage('ai', response, this.currentModel);
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                installBtn.style.display = 'flex';
+                
+                installBtn.addEventListener('click', () => {
+                    installBtn.style.display = 'none';
+                    deferredPrompt.prompt();
+                    
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            this.showAlert('تم تثبيت التطبيق بنجاح!', 'success');
+                        }
+                        deferredPrompt = null;
+                    });
+                });
+            });
             
-            // تلقائيًا تمييز الرسائل المهمة
-            if (this.shouldHighlight(message)) {
-                this.highlightMessage(messageId);
-            }
+            window.addEventListener('appinstalled', () => {
+                installBtn.style.display = 'none';
+            });
             
-            // حفظ المحادثة
-            this.saveConversation();
-            
-        } catch (error) {
-            console.error('❌ خطأ في معالجة الرسالة:', error);
-            this.removeThinkingMessage(thinkingMsgId);
-            this.addMessage('ai', 'عذرًا، حدث خطأ أثناء معالجة رسالتك. يرجى المحاولة مرة أخرى.', 'error');
+            // إضافة الأنميشن
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes pulseInstall {
+                    0% { transform: scale(1); box-shadow: 0 4px 15px rgba(26, 115, 232, 0.3); }
+                    50% { transform: scale(1.05); box-shadow: 0 6px 20px rgba(26, 115, 232, 0.5); }
+                    100% { transform: scale(1); box-shadow: 0 4px 15px rgba(26, 115, 232, 0.3); }
+                }
+                
+                .pwa-install-btn:hover {
+                    transform: scale(1.05);
+                    box-shadow: 0 6px 20px rgba(26, 115, 232, 0.5);
+                }
+            `;
+            document.head.appendChild(style);
         }
     }
 
-    shouldHighlight(message) {
-        // قائمة بالكلمات المهمة التي تستدعي التمييز
-        const importantKeywords = [
-            'مهم', 'عاجل', 'تنبيه', 'تحذير', 'انتبه',
-            'ضروري', 'فوري', 'حيوي', 'حساس', 'سرّي'
-        ];
+    // ===== تحسين شريط الإدخال (مثل Qwen Chat) =====
+    updateInputBar() {
+        const inputContainer = document.querySelector('.input-container');
+        if (!inputContainer) return;
         
-        return importantKeywords.some(keyword => 
-            message.toLowerCase().includes(keyword.toLowerCase())
-        );
+        // تحديث أزرار شريط الإدخال
+        inputContainer.innerHTML = `
+            <div class="input-tools-row">
+                <button class="input-tool-btn" onclick="attachFile()" title="إرفاق ملف">
+                    <i class="fas fa-paperclip"></i>
+                    <span>ملف</span>
+                </button>
+                <button class="input-tool-btn" onclick="toggleThinkingMode()" title="وضع التفكير">
+                    <i class="fas fa-brain"></i>
+                    <span>Thinking ↓</span>
+                </button>
+                <button class="input-tool-btn" onclick="toggleWebSearch()" title="البحث على الويب">
+                    <i class="fas fa-globe"></i>
+                    <span>ويب</span>
+                </button>
+                <button class="input-tool-btn" onclick="showPromptLibrary()" title="مكتبة النصوص">
+                    <i class="fas fa-book"></i>
+                    <span>نصوص</span>
+                </button>
+            </div>
+            
+            <div class="input-area-enhanced">
+                <button class="input-attach-btn" onclick="attachFile()">
+                    <i class="fas fa-plus"></i>
+                </button>
+                
+                <textarea 
+                    id="messageInput" 
+                    placeholder="اكتب رسالتك هنا... (اضغط Ctrl + Enter للإرسال السريع)"
+                    rows="1"
+                    oninput="autoResize(this)"
+                    onkeydown="handleKeyDown(event)"
+                ></textarea>
+                
+                <div class="input-action-buttons">
+                    <button class="input-action-btn voice-btn" onclick="toggleVoiceInput()" id="voiceButton">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <button class="input-action-btn send-btn" onclick="sendMessage()" id="sendButton">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="input-hints">
+                <div class="hint-item">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>جرب: "اكتب كود Python لتحليل البيانات"</span>
+                </div>
+                <div class="hint-item">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>أو: "اشرح نظرية النسبية ببساطة"</span>
+                </div>
+            </div>
+        `;
+        
+        // إضافة CSS للشريط المحسن
+        const enhancedStyle = document.createElement('style');
+        enhancedStyle.textContent = `
+            .input-tools-row {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 10px;
+                justify-content: center;
+            }
+            
+            .input-tool-btn {
+                padding: 8px 16px;
+                background: var(--bg-secondary);
+                border: 1px solid var(--border-color);
+                border-radius: 20px;
+                font-family: 'Tajawal', sans-serif;
+                font-size: 14px;
+                color: var(--text-color);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                transition: all 0.2s;
+            }
+            
+            .input-tool-btn:hover {
+                background: var(--bg-tertiary);
+                transform: translateY(-1px);
+            }
+            
+            .input-tool-btn.active {
+                background: var(--primary-color);
+                color: white;
+                border-color: var(--primary-color);
+            }
+            
+            .input-area-enhanced {
+                display: flex;
+                gap: 10px;
+                align-items: flex-end;
+                background: var(--bg-secondary);
+                border: 2px solid var(--border-color);
+                border-radius: 24px;
+                padding: 8px;
+                transition: border-color 0.3s;
+            }
+            
+            .input-area-enhanced:focus-within {
+                border-color: var(--primary-color);
+            }
+            
+            .input-attach-btn {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: var(--bg-tertiary);
+                border: none;
+                color: var(--text-color);
+                font-size: 18px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s;
+                flex-shrink: 0;
+            }
+            
+            .input-attach-btn:hover {
+                background: var(--primary-color);
+                color: white;
+                transform: scale(1.1);
+            }
+            
+            .input-area-enhanced textarea {
+                flex: 1;
+                padding: 12px;
+                border: none;
+                background: transparent;
+                font-family: 'Tajawal', sans-serif;
+                font-size: 16px;
+                color: var(--text-color);
+                resize: none;
+                min-height: 50px;
+                max-height: 150px;
+                outline: none;
+            }
+            
+            .input-action-buttons {
+                display: flex;
+                gap: 8px;
+                margin-bottom: 8px;
+                flex-shrink: 0;
+            }
+            
+            .input-action-btn {
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                border: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            
+            .voice-btn {
+                background: var(--bg-tertiary);
+                color: var(--text-color);
+            }
+            
+            .voice-btn:hover {
+                background: var(--accent-color);
+                color: white;
+            }
+            
+            .voice-btn.recording {
+                background: var(--accent-color);
+                color: white;
+                animation: pulse 1.5s infinite;
+            }
+            
+            .send-btn {
+                background: var(--primary-color);
+                color: white;
+            }
+            
+            .send-btn:hover {
+                background: var(--primary-dark);
+                transform: scale(1.05);
+            }
+            
+            .input-hints {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+                margin-top: 10px;
+            }
+            
+            .hint-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 12px;
+                color: var(--text-secondary);
+            }
+            
+            .hint-item i {
+                color: var(--warning-color);
+            }
+        `;
+        document.head.appendChild(enhancedStyle);
     }
 
+    // ===== إضافة المربع الأحمر للرسائل المميزة =====
     addMessage(sender, content, modelId = null) {
         const messagesContainer = document.getElementById('messagesContainer');
         
-        // إخفاء رسالة الترحيب
         document.getElementById('welcomeSection').style.display = 'none';
         document.getElementById('chatContainer').style.display = 'block';
         
@@ -228,15 +372,18 @@ class AIHubApp {
         messageDiv.className = `message ${sender}-message`;
         messageDiv.id = messageId;
         
+        // التحقق إذا كانت الرسالة مهمة (تحتوي على كلمات مفتاحية)
+        const isImportant = this.checkIfImportant(content);
+        
         if (sender === 'user') {
             messageDiv.innerHTML = `
-                <div class="message-content">
-                    ${this.escapeHtml(content)}
+                <div class="message-content ${isImportant ? 'important-message' : ''}">
+                    <div class="message-text">${this.escapeHtml(content)}</div>
                     <div class="message-actions">
-                        <button class="message-action-btn" onclick="app.copyMessage('${messageId}')">
+                        <button class="message-action-btn" onclick="app.copyMessage('${messageId}')" title="نسخ">
                             <i class="fas fa-copy"></i>
                         </button>
-                        <button class="message-action-btn" onclick="app.highlightMessage('${messageId}')">
+                        <button class="message-action-btn highlight-btn" onclick="app.toggleHighlight('${messageId}')" title="تمييز">
                             <i class="fas fa-star"></i>
                         </button>
                     </div>
@@ -248,21 +395,27 @@ class AIHubApp {
                 <div class="ai-avatar" style="background-color: ${model.color}">
                     <i class="${model.icon}"></i>
                 </div>
-                <div class="message-content">
+                <div class="message-content ${isImportant ? 'important-message' : ''}">
                     <div class="message-header">
-                        <strong>${model.name}</strong>
+                        <div class="model-name">
+                            <i class="${model.icon}"></i>
+                            <strong>${model.name}</strong>
+                        </div>
                         <small>${new Date().toLocaleTimeString('ar-SA')}</small>
                     </div>
                     <div class="message-text">${this.formatResponse(content)}</div>
                     <div class="message-actions">
-                        <button class="message-action-btn" onclick="app.copyMessage('${messageId}')">
+                        <button class="message-action-btn" onclick="app.copyMessage('${messageId}')" title="نسخ">
                             <i class="fas fa-copy"></i>
                         </button>
-                        <button class="message-action-btn" onclick="app.highlightMessage('${messageId}')">
+                        <button class="message-action-btn highlight-btn" onclick="app.toggleHighlight('${messageId}')" title="تمييز">
                             <i class="fas fa-star"></i>
                         </button>
-                        <button class="message-action-btn" onclick="app.downloadMessage('${messageId}')">
+                        <button class="message-action-btn" onclick="app.downloadMessage('${messageId}')" title="تحميل">
                             <i class="fas fa-download"></i>
+                        </button>
+                        <button class="message-action-btn" onclick="app.regenerateMessage('${messageId}')" title="إعادة توليد">
+                            <i class="fas fa-redo"></i>
                         </button>
                     </div>
                 </div>
@@ -272,6 +425,11 @@ class AIHubApp {
         messagesContainer.appendChild(messageDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
         
+        // إضافة أنيميشن للرسائل المهمة
+        if (isImportant) {
+            this.highlightMessage(messageId);
+        }
+        
         // حفظ الرسالة
         this.messages.push({
             id: messageId,
@@ -279,46 +437,219 @@ class AIHubApp {
             content,
             modelId,
             timestamp: new Date().toISOString(),
-            highlighted: false
+            highlighted: isImportant,
+            important: isImportant
         });
         
         return messageId;
+    }
+
+    checkIfImportant(content) {
+        const importantKeywords = [
+            'مهم', 'عاجل', 'ضروري', 'انتبه', 'تحذير',
+            'تنبيه', 'خطر', 'فوري', 'حيوي', 'سرّي',
+            'مميز', 'خاص', 'سري', 'حساس', 'أولوية'
+        ];
+        
+        const arabicContent = content.toLowerCase();
+        return importantKeywords.some(keyword => arabicContent.includes(keyword));
+    }
+
+    toggleHighlight(messageId) {
+        const messageDiv = document.getElementById(messageId);
+        if (!messageDiv) return;
+        
+        const contentDiv = messageDiv.querySelector('.message-content');
+        const isHighlighted = contentDiv.classList.contains('highlighted-message');
+        
+        if (isHighlighted) {
+            contentDiv.classList.remove('highlighted-message');
+            this.showAlert('تم إزالة التمييز من الرسالة', 'info');
+        } else {
+            contentDiv.classList.add('highlighted-message');
+            this.showAlert('تم تمييز الرسالة بالمربع الأحمر', 'success');
+        }
+        
+        // تحديث حالة الرسالة
+        const messageIndex = this.messages.findIndex(m => m.id === messageId);
+        if (messageIndex > -1) {
+            this.messages[messageIndex].highlighted = !isHighlighted;
+        }
+        
+        this.saveConversation();
     }
 
     highlightMessage(messageId) {
         const messageDiv = document.getElementById(messageId);
         if (!messageDiv) return;
         
-        const isHighlighted = this.highlightedMessages.has(messageId);
+        const contentDiv = messageDiv.querySelector('.message-content');
+        contentDiv.classList.add('highlighted-message');
         
-        if (isHighlighted) {
-            // إزالة التمييز
-            messageDiv.classList.remove('message-highlight');
-            this.highlightedMessages.delete(messageId);
-            
-            // تحديث الرسالة في الذاكرة
-            const messageIndex = this.messages.findIndex(m => m.id === messageId);
-            if (messageIndex > -1) {
-                this.messages[messageIndex].highlighted = false;
+        // إضافة أنيميشن
+        contentDiv.style.animation = 'highlightPulse 2s ease-in-out';
+        
+        setTimeout(() => {
+            contentDiv.style.animation = '';
+        }, 2000);
+    }
+
+    // ===== CSS للرسائل المميزة =====
+    addHighlightStyles() {
+        const style = document.createElement('style');
+        style.textContent = `
+            .highlighted-message {
+                position: relative;
+                border-right: 4px solid #ea4335 !important;
+                background: linear-gradient(90deg, rgba(234, 67, 53, 0.1), transparent) !important;
             }
             
-            this.showAlert('تم إزالة التمييز من الرسالة', 'info');
-        } else {
-            // إضافة التمييز
-            messageDiv.classList.add('message-highlight');
-            this.highlightedMessages.add(messageId);
-            
-            // تحديث الرسالة في الذاكرة
-            const messageIndex = this.messages.findIndex(m => m.id === messageId);
-            if (messageIndex > -1) {
-                this.messages[messageIndex].highlighted = true;
+            .highlighted-message::before {
+                content: '★';
+                position: absolute;
+                right: -15px;
+                top: -10px;
+                color: #ea4335;
+                font-size: 20px;
+                animation: starGlow 2s infinite;
             }
             
-            this.showAlert('تم تمييز الرسالة بالمربع الأحمر', 'success');
+            .important-message {
+                border: 2px solid #fbbc05 !important;
+                animation: importantPulse 3s infinite;
+            }
+            
+            @keyframes highlightPulse {
+                0% { box-shadow: 0 0 0 0 rgba(234, 67, 53, 0.7); }
+                70% { box-shadow: 0 0 0 10px rgba(234, 67, 53, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(234, 67, 53, 0); }
+            }
+            
+            @keyframes starGlow {
+                0%, 100% { opacity: 1; transform: scale(1); }
+                50% { opacity: 0.7; transform: scale(1.2); }
+            }
+            
+            @keyframes importantPulse {
+                0%, 100% { border-color: #fbbc05; }
+                50% { border-color: #ff9800; }
+            }
+            
+            .message-action-btn.highlight-btn.active {
+                color: #fbbc05;
+            }
+            
+            .message-action-btn.highlight-btn.active i {
+                color: #fbbc05;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // ===== بقية الدوال =====
+    async sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+        
+        if (!message) return;
+        
+        this.addMessage('user', message);
+        input.value = '';
+        this.autoResize(input);
+        
+        const thinkingMsgId = this.showThinkingMessage();
+        
+        try {
+            let response;
+            
+            if (this.isCompareMode) {
+                response = await this.processComparison(message);
+            } else {
+                response = await this.processMessage(message);
+            }
+            
+            this.removeThinkingMessage(thinkingMsgId);
+            this.addMessage('ai', response, this.currentModel);
+            this.saveConversation();
+            
+        } catch (error) {
+            console.error('❌ خطأ:', error);
+            this.removeThinkingMessage(thinkingMsgId);
+            this.addMessage('ai', 'عذرًا، حدث خطأ. يرجى المحاولة مرة أخرى.', 'error');
         }
+    }
+
+    async processMessage(message) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                const responses = {
+                    phi3: `🧠 **Phi-3-mini:**\n\nسؤالك: "${message}"\n\nPhi-3-mini مصمم للسرعة والكفاءة. إنه مثالي للمحادثات اليومية والأسئلة العامة. يمكنني مساعدتك في:\n• الإجابة على الأسئلة اليومية\n• كتابة النصوص القصيرة\n• الترجمة البسيطة\n• تلخيص المعلومات`,
+                    
+                    qwen: `👑 **Qwen-3-Max:**\n\n"${message}" - سؤال ممتاز!\n\nبصفتي Qwen-3-Max، أتميز بدعم ممتاز للغة العربية والقدرة على تحليل الأسئلة المعقدة. يمكنني:\n• تحليل متعمق للمواضيع\n• كتابة محتوى عربي فصيح\n• الإجابة على الأسئلة الفلسفية\n• تقديم استشارات متخصصة`,
+                    
+                    deepseek: `💻 **DeepSeek-Coder:**\n\n// معالجة السؤال: "${message}"\n\n/*\nمزايا DeepSeek-Coder:\n1. كتابة وتصحيح الأكواد\n2. شرح المفاهيم البرمجية\n3. تحليل الخوارزميات\n4. حل مشاكل البرمجة\n*/\n\n// مثال على ما يمكنني فعله:\nfunction solveProblem(problem) {\n    // تحليل المشكلة\n    // اقتراح الحلول\n    // كتابة الكود المناسب\n    return solution;\n}`
+                };
+                
+                resolve(responses[this.currentModel] || 'نموذج غير متوفر');
+            }, 1500);
+        });
+    }
+
+    // ===== Service Worker =====
+    registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(registration => {
+                    console.log('✅ Service Worker مسجل:', registration.scope);
+                    
+                    // إرسال رسالة لتفعيل Service Worker
+                    if (registration.active) {
+                        registration.active.postMessage({ type: 'INIT' });
+                    }
+                    
+                    // التحقق من التحديثات
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                this.showAlert('تحديث جديد متاح! أعد تحميل الصفحة.', 'info');
+                            }
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.log('❌ فشل تسجيل Service Worker:', error);
+                    this.showAlert('التطبيق يعمل ولكن بدون ميزات عدم الاتصال', 'warning');
+                });
+        }
+    }
+
+    // ===== دوال أخرى =====
+    showAlert(message, type = 'info') {
+        const alertBar = document.getElementById('alertBar');
+        const alertText = document.getElementById('alertText');
         
-        // حفظ التغييرات
-        this.saveConversation();
+        if (!alertBar || !alertText) return;
+        
+        const colors = {
+            success: '#34a853',
+            error: '#ea4335',
+            warning: '#fbbc05',
+            info: '#1a73e8'
+        };
+        
+        alertBar.style.background = `linear-gradient(135deg, ${colors[type]}, ${colors[type]}99)`;
+        alertText.textContent = message;
+        alertBar.style.display = 'flex';
+        
+        setTimeout(() => {
+            this.hideAlert();
+        }, 5000);
+    }
+
+    hideAlert() {
+        const alertBar = document.getElementById('alertBar');
+        if (alertBar) alertBar.style.display = 'none';
     }
 
     showThinkingMessage() {
@@ -333,10 +664,12 @@ class AIHubApp {
                 <i class="${this.models[this.currentModel].icon}"></i>
             </div>
             <div class="message-content">
-                <div class="thinking-indicator">
-                    <span></span><span></span><span></span>
+                <div class="thinking-animation">
+                    <div class="thinking-dot"></div>
+                    <div class="thinking-dot"></div>
+                    <div class="thinking-dot"></div>
                 </div>
-                <p>جارٍ التفكير...</p>
+                <p>جارٍ التفكير في ردك...</p>
             </div>
         `;
         
@@ -346,74 +679,17 @@ class AIHubApp {
         return thinkingId;
     }
 
-    // ===== معالجة الرسائل =====
-    async processMessage(message) {
-        // محاكاة استجابة النموذج مع تحسينات
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                const responses = {
-                    phi3: `هذا رد من Phi-3-mini (السريع والخفيف):
-                    
-📌 **سؤالك:** "${message}"
-
-Phi-3-mini مصمم للمهام اليومية السريعة والردود المختصرة. إنه مثالي للأجهزة محدودة الموارد.
-
-💡 **نصيحة:** يمكنك استخدامي للمحادثات اليومية، الأسئلة العامة، والمهام البسيطة.
-
-🔧 **مثال:** إذا كنت تريد مساعدة في كتابة بريد إلكتروني، قل: "اكتب لي بريد إلكتروني..."`,
-                    
-                    qwen: `هذا رد من Qwen-3-Max (المتقدم للعربية):
-                    
-🎯 **تحليل السؤال:** "${message}"
-
-Qwen-3-Max يتميز بدعم ممتاز للغة العربية والقدرة على معالجة الأسئلة المعقدة. لديّ معرفة شاملة في مختلف المجالات.
-
-📚 **معلومات إضافية:** يمكنني تقديم إجابات مفصلة مع الاستشهاد بمصادر موثوقة (في وضع الاتصال).
-
-🌍 **دعم اللغة:** العربية الفصحى والعامية المدعومة بشكل كامل.`,
-                    
-                    deepseek: `// رد من DeepSeek-Coder (المتخصص في البرمجة):
-/*
-سؤالك: "${message}"
-*/
-
-// DeepSeek-Coder متخصص في حل المشاكل البرمجية
-// يمكنه كتابة، تصحيح، وتحليل الأكواد
-
-function generateAnswer(question) {
-    // تحليل نوع السؤال
-    const questionType = analyzeQuestionType(question);
-    
-    // توليد الحل المناسب
-    switch(questionType) {
-        case 'code-writing':
-            return generateCodeSolution(question);
-        case 'debugging':
-            return debugCode(question);
-        case 'explanation':
-            return explainConcept(question);
-        default:
-            return provideGeneralHelp(question);
-    }
-}
-
-// 💻 أمثلة على ما يمكنني فعله:
-// 1. كتابة كود بلغة معينة
-// 2. تصحيح الأخطاء في الكود
-// 3. شرح مفاهيم برمجية`
-                };
-                
-                resolve(responses[this.currentModel] || 'نموذج غير متوفر');
-            }, 1500);
-        });
+    removeThinkingMessage(messageId) {
+        const element = document.getElementById(messageId);
+        if (element) element.remove();
     }
 
-    // ===== الأدوات المساعدة =====
+    autoResize(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight) + 'px';
+    }
+
     formatResponse(text) {
-        // تحويل الروابط
-        text = text.replace(/https?:\/\/[^\s]+/g, '<a href="$&" target="_blank" class="text-link">$&</a>');
-        
-        // تنسيق الأكواد
         text = text.replace(/```([\s\S]*?)```/g, (match, code) => {
             const randomId = 'code-' + Math.random().toString(36).substr(2, 9);
             return `
@@ -429,247 +705,14 @@ function generateAnswer(question) {
             `;
         });
         
-        // تنسيق العناوين
-        text = text.replace(/^# (.*$)/gm, '<h4 class="response-heading">$1</h4>');
-        text = text.replace(/^## (.*$)/gm, '<h5 class="response-subheading">$1</h5>');
-        
-        // تنسيق النقاط
-        text = text.replace(/^- (.*$)/gm, '<div class="list-item"><i class="fas fa-circle"></i> $1</div>');
-        
-        // تنسيق الأسطر
-        text = text.replace(/\n\n/g, '</p><p>');
         text = text.replace(/\n/g, '<br>');
-        
-        return `<p>${text}</p>`;
+        return text;
     }
 
     escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
-    }
-
-    autoResize(textarea) {
-        textarea.style.height = 'auto';
-        textarea.style.height = (textarea.scrollHeight) + 'px';
-    }
-
-    // ===== إدارة الحالة =====
-    selectModel(modelId) {
-        // تحديث النموذج السابق
-        const previousModel = document.querySelector(`[data-model="${this.currentModel}"]`);
-        if (previousModel) {
-            previousModel.classList.remove('active');
-            previousModel.querySelector('.status-dot').classList.remove('active');
-        }
-        
-        // تحديث النموذج الجديد
-        this.currentModel = modelId;
-        
-        const newModel = document.querySelector(`[data-model="${modelId}"]`);
-        if (newModel) {
-            newModel.classList.add('active');
-            newModel.querySelector('.status-dot').classList.add('active');
-        }
-        
-        // تحديث الشارة العلوية
-        const badge = document.getElementById('currentModelBadge');
-        badge.innerHTML = `
-            <i class="${this.models[modelId].icon}"></i>
-            ${this.models[modelId].name}
-        `;
-        badge.style.backgroundColor = this.models[modelId].color;
-        
-        // إظهار التنبيه
-        this.showAlert(`تم التبديل إلى ${this.models[modelId].name}`, 'info');
-    }
-
-    toggleCompareMode() {
-        this.isCompareMode = !this.isCompareMode;
-        const toggle = document.getElementById('compareToggle');
-        
-        if (toggle) {
-            toggle.checked = this.isCompareMode;
-        }
-        
-        if (this.isCompareMode) {
-            this.showAlert('تم تفعيل وضع المقارنة. سيتم عرض ردود النماذج الثلاثة معًا.', 'info');
-            document.getElementById('comparisonSection').style.display = 'block';
-        } else {
-            document.getElementById('comparisonSection').style.display = 'none';
-        }
-        
-        // حفظ الإعداد
-        this.saveSettings();
-    }
-
-    toggleSidebar() {
-        this.isSidebarOpen = !this.isSidebarOpen;
-        const sidebar = document.getElementById('sidebar');
-        
-        if (this.isSidebarOpen) {
-            sidebar.classList.add('open');
-        } else {
-            sidebar.classList.remove('open');
-        }
-    }
-
-    toggleTheme() {
-        this.isDarkMode = !this.isDarkMode;
-        document.documentElement.setAttribute('data-theme', this.isDarkMode ? 'dark' : 'light');
-        
-        // حفظ الإعداد
-        localStorage.setItem('darkMode', this.isDarkMode);
-        
-        // تحديث الأيقونة
-        const themeIcon = document.querySelector('.icon-btn .fa-moon, .icon-btn .fa-sun');
-        if (themeIcon) {
-            themeIcon.className = this.isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
-        }
-        
-        this.showAlert(`تم تفعيل الوضع ${this.isDarkMode ? 'المظلم' : 'الفاتح'}`, 'info');
-    }
-
-    // ===== التنبيهات والإشعارات =====
-    showAlert(message, type = 'info') {
-        const alertBar = document.getElementById('alertBar');
-        const alertText = document.getElementById('alertText');
-        
-        // تعيين اللون حسب النوع
-        const colors = {
-            success: '#34a853',
-            error: '#ea4335',
-            warning: '#fbbc05',
-            info: '#1a73e8'
-        };
-        
-        alertBar.style.background = `linear-gradient(135deg, ${colors[type]}, ${colors[type]}99)`;
-        alertText.textContent = message;
-        alertBar.style.display = 'flex';
-        
-        // إخفاء تلقائي بعد 5 ثوانٍ
-        setTimeout(() => {
-            this.hideAlert();
-        }, 5000);
-    }
-
-    hideAlert() {
-        document.getElementById('alertBar').style.display = 'none';
-    }
-
-    // ===== إدارة البيانات =====
-    saveConversation() {
-        const conversation = {
-            messages: this.messages,
-            model: this.currentModel,
-            timestamp: new Date().toISOString(),
-            id: 'conv-' + Date.now()
-        };
-        
-        // حفظ في localStorage
-        const conversations = JSON.parse(localStorage.getItem('conversations') || '[]');
-        conversations.push(conversation);
-        localStorage.setItem('conversations', JSON.stringify(conversations.slice(-50))); // حفظ آخر 50 محادثة
-        
-        // تحديث معلومات التخزين
-        this.updateStorageInfo();
-    }
-
-    loadPreviousConversations() {
-        const conversations = JSON.parse(localStorage.getItem('conversations') || '[]');
-        if (conversations.length > 0) {
-            // تحميل آخر محادثة
-            const lastConversation = conversations[conversations.length - 1];
-            this.currentModel = lastConversation.model || 'phi3';
-            
-            // عرض زر لتحميل المحادثات السابقة
-            this.showAlert('يوجد محادثات سابقة. استخدم زر "تحميل المحادثات" في الإعدادات.', 'info');
-        }
-    }
-
-    loadSettings() {
-        // تحميل الوضع المظلم
-        const savedDarkMode = localStorage.getItem('darkMode');
-        this.isDarkMode = savedDarkMode === 'true';
-        
-        // تحميل الإعدادات الأخرى
-        const settings = JSON.parse(localStorage.getItem('aiHubSettings') || '{}');
-        this.isCompareMode = settings.compareMode || false;
-        this.thinkingMode = settings.thinkingMode || false;
-    }
-
-    saveSettings() {
-        const settings = {
-            compareMode: this.isCompareMode,
-            darkMode: this.isDarkMode,
-            thinkingMode: this.thinkingMode,
-            autoSave: true
-        };
-        
-        localStorage.setItem('aiHubSettings', JSON.stringify(settings));
-    }
-
-    updateStorageInfo() {
-        // حساب حجم البيانات المحفوظة
-        let totalSize = 0;
-        
-        // حجم المحادثات
-        const conversations = localStorage.getItem('conversations');
-        if (conversations) {
-            totalSize += new Blob([conversations]).size;
-        }
-        
-        // حجم الإعدادات
-        const settings = localStorage.getItem('aiHubSettings');
-        if (settings) {
-            totalSize += new Blob([settings]).size;
-        }
-        
-        // تحويل للـ MB
-        const sizeInMB = (totalSize / (1024 * 1024)).toFixed(2);
-        
-        // تحديث واجهة المستخدم
-        const storageText = document.querySelector('.storage-info span');
-        if (storageText) {
-            storageText.textContent = `${sizeInMB} / 50 MB مستخدم`;
-        }
-        
-        const storageFill = document.querySelector('.storage-fill');
-        if (storageFill) {
-            const percentage = (sizeInMB / 50) * 100;
-            storageFill.style.width = `${Math.min(percentage, 100)}%`;
-        }
-    }
-
-    // ===== Service Worker =====
-    registerServiceWorker() {
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        console.log('✅ Service Worker مسجل:', registration.scope);
-                        this.showAlert('التطبيق يعمل الآن بدون إنترنت!', 'success');
-                    })
-                    .catch(error => {
-                        console.log('❌ فشل تسجيل Service Worker:', error);
-                    });
-            });
-        }
-    }
-
-    // ===== الوظائف العامة =====
-    clearChat() {
-        if (confirm('هل تريد مسح المحادثة الحالية؟')) {
-            document.getElementById('messagesContainer').innerHTML = '';
-            this.messages = [];
-            this.highlightedMessages.clear();
-            
-            // إظهار رسالة الترحيب
-            document.getElementById('welcomeSection').style.display = 'block';
-            document.getElementById('chatContainer').style.display = 'none';
-            
-            this.showAlert('تم مسح المحادثة', 'info');
-        }
     }
 
     copyMessage(messageId) {
@@ -680,16 +723,7 @@ function generateAnswer(question) {
                            messageDiv.querySelector('.message-content')?.textContent;
         
         navigator.clipboard.writeText(messageText).then(() => {
-            this.showAlert('تم نسخ الرسالة إلى الحافظة', 'success');
-        }).catch(() => {
-            // طريقة بديلة للمتصفحات القديمة
-            const textArea = document.createElement('textarea');
-            textArea.value = messageText;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            this.showAlert('تم نسخ الرسالة إلى الحافظة', 'success');
+            this.showAlert('تم نسخ الرسالة', 'success');
         });
     }
 
@@ -698,7 +732,7 @@ function generateAnswer(question) {
         if (!textElement) return;
         
         navigator.clipboard.writeText(textElement.textContent).then(() => {
-            this.showAlert('تم نسخ الكود إلى الحافظة', 'success');
+            this.showAlert('تم نسخ الكود', 'success');
         });
     }
 
@@ -723,159 +757,228 @@ function generateAnswer(question) {
         this.showAlert('تم تنزيل الرسالة', 'success');
     }
 
-    // ===== معالجة الإجراءات السريعة =====
-    handleSpecialty(specialty) {
-        const prompts = {
-            writer: 'أريد مساعدتك في كتابة محتوى. أنا أبحث عن مساعد يمكنه كتابة مقالات، منشورات، ورسائل إلكترونية بلغة عربية فصيحة.',
-            coder: 'أحتاج مساعدة في البرمجة. هل يمكنك مساعدتي في كتابة، تصحيح، أو تحليل الأكواد البرمجية؟',
-            assistant: 'أبحث عن مساعد يومي يمكنه الإجابة على أسئلتي، تنظيم مهامي، وتقديم النصائح العملية.'
+    regenerateMessage(messageId) {
+        const messageIndex = this.messages.findIndex(m => m.id === messageId);
+        if (messageIndex === -1) return;
+        
+        const previousMessage = this.messages[messageIndex - 1];
+        if (!previousMessage || previousMessage.sender !== 'user') return;
+        
+        // إزالة الرسالة الحالية
+        const messageDiv = document.getElementById(messageId);
+        if (messageDiv) messageDiv.remove();
+        
+        // إعادة إرسال الرسالة السابقة
+        this.messages.splice(messageIndex, 1);
+        
+        const input = document.getElementById('messageInput');
+        input.value = previousMessage.content;
+        this.autoResize(input);
+        this.sendMessage();
+    }
+
+    saveConversation() {
+        const conversation = {
+            messages: this.messages,
+            model: this.currentModel,
+            timestamp: new Date().toISOString(),
+            id: 'conv-' + Date.now()
         };
         
-        document.getElementById('messageInput').value = prompts[specialty] || specialty;
-        this.autoResize(document.getElementById('messageInput'));
-        this.showAlert(`تم تعيين وضع "${specialty}" - يمكنك تعديل النص قبل الإرسال`, 'info');
+        const conversations = JSON.parse(localStorage.getItem('conversations') || '[]');
+        conversations.push(conversation);
+        localStorage.setItem('conversations', JSON.stringify(conversations.slice(-50)));
+        
+        this.updateStorageInfo();
     }
 
-    handleQuickAction(action) {
-        const actions = {
-            'question': 'ما هي أحدث التطورات في الذكاء الاصطناعي في عام 2025؟',
-            'code': 'اكتب دالة في JavaScript لتحويل JSON إلى CSV',
-            'translate': 'ترجم الجملة التالية إلى الإنجليزية: "الذكاء الاصطناعي هو مستقبل التكنولوجيا"',
-            'writer': 'أريد كتابة مقال عن أهمية الذكاء الاصطناعي في التعليم',
-            'coder': 'ساعدني في تصحيح هذا الكود الذي به خطأ',
-            'assistant': 'ما هي أفضل الممارسات لتنظيم الوقت؟'
+    loadPreviousConversations() {
+        const conversations = JSON.parse(localStorage.getItem('conversations') || '[]');
+        if (conversations.length > 0) {
+            this.showAlert('يوجد محادثات سابقة محفوظة', 'info');
+        }
+    }
+
+    loadSettings() {
+        const savedDarkMode = localStorage.getItem('darkMode');
+        this.isDarkMode = savedDarkMode === 'true';
+        
+        const settings = JSON.parse(localStorage.getItem('aiHubSettings') || '{}');
+        this.isCompareMode = settings.compareMode || false;
+    }
+
+    saveSettings() {
+        const settings = {
+            compareMode: this.isCompareMode,
+            darkMode: this.isDarkMode,
+            thinkingMode: this.thinkingMode
         };
         
-        const message = actions[action] || action;
-        document.getElementById('messageInput').value = message;
-        this.autoResize(document.getElementById('messageInput'));
+        localStorage.setItem('aiHubSettings', JSON.stringify(settings));
+    }
+
+    updateStorageInfo() {
+        let totalSize = 0;
         
-        // إرسال تلقائي للإجراءات السريعة
-        setTimeout(() => this.sendMessage(), 500);
-    }
-
-    // ===== الدوال العامة للاستدعاء من HTML =====
-    toggleLoginModal() {
-        const modal = document.getElementById('loginModal');
-        modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
-    }
-
-    toggleSettingsModal() {
-        const modal = document.getElementById('settingsModal');
-        modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
-    }
-
-    toggleLoginForm(type) {
-        const emailForm = document.getElementById('emailLoginForm');
-        const guestWarning = document.getElementById('guestWarning');
+        const conversations = localStorage.getItem('conversations');
+        if (conversations) totalSize += new Blob([conversations]).size;
         
-        if (type === 'email') {
-            emailForm.style.display = 'block';
-            guestWarning.style.display = 'none';
+        const settings = localStorage.getItem('aiHubSettings');
+        if (settings) totalSize += new Blob([settings]).size;
+        
+        const sizeInMB = (totalSize / (1024 * 1024)).toFixed(2);
+        
+        const storageText = document.querySelector('.storage-info span');
+        if (storageText) {
+            storageText.textContent = `${sizeInMB} / 50 MB مستخدم`;
+        }
+        
+        const storageFill = document.querySelector('.storage-fill');
+        if (storageFill) {
+            const percentage = (sizeInMB / 50) * 100;
+            storageFill.style.width = `${Math.min(percentage, 100)}%`;
+        }
+    }
+
+    selectModel(modelId) {
+        const previousModel = document.querySelector(`[data-model="${this.currentModel}"]`);
+        if (previousModel) {
+            previousModel.classList.remove('active');
+            previousModel.querySelector('.status-dot').classList.remove('active');
+        }
+        
+        this.currentModel = modelId;
+        
+        const newModel = document.querySelector(`[data-model="${modelId}"]`);
+        if (newModel) {
+            newModel.classList.add('active');
+            newModel.querySelector('.status-dot').classList.add('active');
+        }
+        
+        const badge = document.getElementById('currentModelBadge');
+        if (badge) {
+            badge.innerHTML = `
+                <i class="${this.models[modelId].icon}"></i>
+                ${this.models[modelId].name}
+            `;
+            badge.style.backgroundColor = this.models[modelId].color;
+        }
+        
+        this.showAlert(`تم التبديل إلى ${this.models[modelId].name}`, 'info');
+    }
+
+    toggleCompareMode() {
+        this.isCompareMode = !this.isCompareMode;
+        const toggle = document.getElementById('compareToggle');
+        
+        if (toggle) toggle.checked = this.isCompareMode;
+        
+        if (this.isCompareMode) {
+            this.showAlert('تم تفعيل وضع المقارنة', 'info');
+            document.getElementById('comparisonSection').style.display = 'block';
         } else {
-            emailForm.style.display = 'none';
-            guestWarning.style.display = 'block';
+            document.getElementById('comparisonSection').style.display = 'none';
+        }
+        
+        this.saveSettings();
+    }
+
+    toggleSidebar() {
+        this.isSidebarOpen = !this.isSidebarOpen;
+        const sidebar = document.getElementById('sidebar');
+        
+        if (this.isSidebarOpen) {
+            sidebar.classList.add('open');
+        } else {
+            sidebar.classList.remove('open');
         }
     }
 
-    loginWithEmail() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
+    toggleTheme() {
+        this.isDarkMode = !this.isDarkMode;
+        document.documentElement.setAttribute('data-theme', this.isDarkMode ? 'dark' : 'light');
         
-        if (!email || !password) {
-            this.showAlert('يرجى ملء جميع الحقول', 'error');
-            return;
+        localStorage.setItem('darkMode', this.isDarkMode);
+        
+        const themeIcon = document.querySelector('.icon-btn .fa-moon, .icon-btn .fa-sun');
+        if (themeIcon) {
+            themeIcon.className = this.isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
         }
         
-        // محاكاة تسجيل الدخول
-        this.showAlert('جارٍ التحقق من بياناتك...', 'info');
-        
-        setTimeout(() => {
-            this.isLoggedIn = true;
-            
-            // تحديث واجهة المستخدم
-            document.querySelector('.user-name').textContent = email.split('@')[0];
-            document.querySelector('.user-status').textContent = 'متصل';
-            document.querySelector('.user-avatar').innerHTML = '<i class="fas fa-user-check"></i>';
-            
-            this.toggleLoginModal();
-            this.showAlert('تم تسجيل الدخول بنجاح!', 'success');
-        }, 1500);
-    }
-
-    continueAsGuest() {
-        this.toggleLoginModal();
-        this.showAlert('أنت الآن في وضع الزائر. لن يتم حفظ محادثاتك على السحابة.', 'info');
+        this.showAlert(`تم تفعيل الوضع ${this.isDarkMode ? 'المظلم' : 'الفاتح'}`, 'info');
     }
 
     applyTheme() {
         if (this.isDarkMode) {
             document.documentElement.setAttribute('data-theme', 'dark');
-            const themeIcon = document.querySelector('.icon-btn .fa-moon');
-            if (themeIcon) {
-                themeIcon.className = 'fas fa-sun';
-            }
         }
     }
 
     showWelcomeMessage() {
-        const welcomeMessages = [
-            "مرحبًا! أنا مساعدك الذكي. يمكنني الإجابة على أسئلتك ومساعدتك في مختلف المهام.",
-            "اختر نموذجًا من القائمة الجانبية لتبدأ. كل نموذج له تخصصه ومميزاته.",
-            "جرب وضع المقارنة لترى كيف تختلف ردود النماذج عن بعضها.",
-            "يمكنك استخدام الأزرار السريعة للبدء مباشرة في المهام الشائعة."
+        const messages = [
+            "مرحبًا! أنا مساعدك الذكي. اختر نموذجًا لتبدأ.",
+            "كل نموذج له تخصصه. Phi-3 سريع، Qwen-3 متقدم، DeepSeek مبرمج.",
+            "جرب وضع المقارنة لترى كيف تختلف ردود النماذج.",
+            "يمكنك تمييز الرسائل المهمة بالمربع الأحمر."
         ];
         
-        const randomMessage = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
-        document.querySelector('.welcome-text').textContent = randomMessage;
+        const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+        const welcomeText = document.querySelector('.welcome-text');
+        if (welcomeText) welcomeText.textContent = randomMessage;
     }
 
+    // ===== دوال شريط الإدخال =====
     attachFile() {
-        this.showAlert('ميزة رفع الملفات قيد التطوير. ستتوفر قريبًا!', 'info');
+        this.showAlert('ميزة رفع الملفات قيد التطوير', 'info');
     }
 
     toggleThinkingMode() {
         this.thinkingMode = !this.thinkingMode;
         const btn = document.querySelector('.input-tool-btn:nth-child(2)');
         
-        if (this.thinkingMode) {
-            btn.classList.add('active');
-            this.showAlert('تم تفعيل وضع التفكير العميق', 'info');
-        } else {
-            btn.classList.remove('active');
-            this.showAlert('تم إيقاف وضع التفكير العميق', 'info');
+        if (btn) {
+            if (this.thinkingMode) {
+                btn.classList.add('active');
+                this.showAlert('وضع التفكير العميق مفعل', 'info');
+            } else {
+                btn.classList.remove('active');
+                this.showAlert('وضع التفكير العميق معطل', 'info');
+            }
         }
     }
 
     toggleWebSearch() {
-        this.showAlert('البحث على الويب غير متاح في الوضع غير المتصل', 'warning');
+        this.showAlert('البحث على الويب غير متاح بدون إنترنت', 'warning');
     }
 
     toggleVoiceInput() {
         this.voiceRecording = !this.voiceRecording;
         const voiceBtn = document.getElementById('voiceButton');
         
+        if (!voiceBtn) return;
+        
         if (this.voiceRecording) {
             voiceBtn.classList.add('recording');
             this.showAlert('جارٍ التسجيل... تحدث الآن', 'info');
             
-            // محاكاة التسجيل
             setTimeout(() => {
                 this.voiceRecording = false;
                 voiceBtn.classList.remove('recording');
                 
-                // نص محاكاة للصوت
                 const voiceMessages = [
-                    "مرحبًا، كيف يمكنني مساعدتك اليوم؟",
-                    "أنا جاهز للإجابة على أسئلتك",
-                    "هل تريد معرفة المزيد عن الذكاء الاصطناعي؟"
+                    "مرحبًا، كيف يمكنني مساعدتك؟",
+                    "أنا هنا للإجابة على أسئلتك",
+                    "اسألني عن أي شيء تريده"
                 ];
                 
                 const randomMessage = voiceMessages[Math.floor(Math.random() * voiceMessages.length)];
-                document.getElementById('messageInput').value = randomMessage;
-                this.autoResize(document.getElementById('messageInput'));
+                const input = document.getElementById('messageInput');
+                if (input) {
+                    input.value = randomMessage;
+                    this.autoResize(input);
+                }
                 
-                this.showAlert('تم التعرف على الصوت بنجاح', 'success');
+                this.showAlert('تم التعرف على الصوت', 'success');
             }, 3000);
         } else {
             voiceBtn.classList.remove('recording');
@@ -883,60 +986,8 @@ function generateAnswer(question) {
         }
     }
 
-    clearAllData() {
-        if (confirm('هل تريد مسح جميع البيانات بما في ذلك المحادثات والإعدادات؟ هذا الإجراء لا يمكن التراجع عنه.')) {
-            localStorage.clear();
-            this.showAlert('تم مسح جميع البيانات', 'success');
-            setTimeout(() => location.reload(), 1000);
-        }
-    }
-
-    saveSettings() {
-        const settings = {
-            compareMode: document.getElementById('compareToggle').checked,
-            darkMode: document.getElementById('darkModeToggle').checked,
-            autoSave: document.getElementById('autoSave').checked,
-            autoLoadModels: document.getElementById('autoLoadModels').checked,
-            powerSaverMode: document.getElementById('powerSaverMode').checked
-        };
-        
-        localStorage.setItem('aiHubSettings', JSON.stringify(settings));
-        this.showAlert('تم حفظ الإعدادات', 'success');
-        this.toggleSettingsModal();
-    }
-
-    exportChat() {
-        const chatData = {
-            messages: this.messages,
-            model: this.currentModel,
-            date: new Date().toLocaleString('ar-SA'),
-            highlightedMessages: Array.from(this.highlightedMessages)
-        };
-        
-        const blob = new Blob([JSON.stringify(chatData, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        
-        a.href = url;
-        a.download = `محادثة-${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        this.showAlert('تم تصدير المحادثة', 'success');
-    }
-
-    cancelLoading() {
-        this.showAlert('تم إلغاء التحميل', 'warning');
-        document.getElementById('loadingOverlay').style.display = 'none';
-    }
-
-    removeThinkingMessage(messageId) {
-        const element = document.getElementById(messageId);
-        if (element) {
-            element.remove();
-        }
+    showPromptLibrary() {
+        this.showAlert('مكتبة النصوص قيد التطوير', 'info');
     }
 }
 
@@ -945,22 +996,38 @@ let app;
 
 window.addEventListener('DOMContentLoaded', () => {
     app = new AIHubApp();
-    window.app = app; // لجعل التطبيق متاحًا عالميًا
+    window.app = app;
     
-    // تهيئة الإعدادات في الواجهة
+    // إضافة أنماط الرسائل المميزة
+    app.addHighlightStyles();
+    
+    // تحديث شريط الإدخال
+    app.updateInputBar();
+    
+    // تحميل الإعدادات
     const settings = JSON.parse(localStorage.getItem('aiHubSettings') || '{}');
-    if (document.getElementById('compareToggle')) {
-        document.getElementById('compareToggle').checked = settings.compareMode || false;
-    }
-    if (document.getElementById('darkModeToggle')) {
-        document.getElementById('darkModeToggle').checked = settings.darkMode || false;
-    }
+    const compareToggle = document.getElementById('compareToggle');
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    
+    if (compareToggle) compareToggle.checked = settings.compareMode || false;
+    if (darkModeToggle) darkModeToggle.checked = settings.darkMode || false;
 });
 
-// ===== دوال عامة للاستدعاء من HTML =====
+// ===== دوال عامة =====
 function toggleSidebar() { app.toggleSidebar(); }
 function toggleTheme() { app.toggleTheme(); }
-function newChat() { app.clearChat(); }
+function newChat() { 
+    if (confirm('هل تريد بدء محادثة جديدة؟')) {
+        document.getElementById('messagesContainer').innerHTML = '';
+        app.messages = [];
+        app.highlightedMessages.clear();
+        
+        document.getElementById('welcomeSection').style.display = 'block';
+        document.getElementById('chatContainer').style.display = 'none';
+        
+        app.showAlert('بدأت محادثة جديدة', 'info');
+    }
+}
 function selectModel(modelId) { app.selectModel(modelId); }
 function toggleCompareMode() { app.toggleCompareMode(); }
 function sendMessage() { app.sendMessage(); }
@@ -971,18 +1038,27 @@ function handleKeyDown(e) {
         app.sendMessage();
     }
 }
-function toggleLoginModal() { app.toggleLoginModal(); }
-function toggleSettingsModal() { app.toggleSettingsModal(); }
-function loginWithEmail() { app.loginWithEmail(); }
-function continueAsGuest() { app.continueAsGuest(); }
-function selectLoginOption(type) { app.toggleLoginForm(type); }
-function hideAlert() { app.hideAlert(); }
-function quickAction(action) { app.handleQuickAction(action); }
 function attachFile() { app.attachFile(); }
 function toggleThinkingMode() { app.toggleThinkingMode(); }
 function toggleWebSearch() { app.toggleWebSearch(); }
 function toggleVoiceInput() { app.toggleVoiceInput(); }
-function clearAllData() { app.clearAllData(); }
-function saveSettings() { app.saveSettings(); }
-function exportChat() { app.exportChat(); }
-function cancelLoading() { app.cancelLoading(); }
+function showPromptLibrary() { app.showPromptLibrary(); }
+function hideAlert() { app.hideAlert(); }
+function quickAction(action) { 
+    const actions = {
+        'writer': 'اكتب لي مقالاً عن أهمية الذكاء الاصطناعي في التعليم',
+        'coder': 'ساعدني في كتابة دالة JavaScript لفرز المصفوفات',
+        'assistant': 'ما هي أفضل الطرق لتنظيم الوقت؟',
+        'question': 'ما هي أحدث التطورات في الذكاء الاصطناعي؟',
+        'code': 'اكتب كود Python لتحليل البيانات',
+        'translate': 'ترجم هذه الجملة إلى الإنجليزية: الذكاء الاصطناعي يغير العالم'
+    };
+    
+    const message = actions[action] || action;
+    const input = document.getElementById('messageInput');
+    if (input) {
+        input.value = message;
+        app.autoResize(input);
+        setTimeout(() => app.sendMessage(), 500);
+    }
+}

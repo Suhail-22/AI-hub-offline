@@ -45,7 +45,348 @@
             </button>
         </div>
     </header>
+<!-- نافذة اختيار وضع التشغيل -->
+<div class="modal" id="modeSelectionModal" style="display: flex;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-network-wired"></i> اختر وضع التشغيل</h3>
+        </div>
+        
+        <div class="modal-body">
+            <div class="mode-selection">
+                <!-- وضع الأونلاين -->
+                <div class="mode-card" id="onlineModeCard">
+                    <div class="mode-icon">
+                        <i class="fas fa-wifi"></i>
+                    </div>
+                    <div class="mode-info">
+                        <h4>🟢 وضع الأونلاين</h4>
+                        <p class="mode-description">
+                            <strong>المزايا:</strong>
+                            <ul>
+                                <li><i class="fas fa-check"></i> لا يتطلب مساحة تخزينية</li>
+                                <li><i class="fas fa-check"></i> سرعة عالية</li>
+                                <li><i class="fas fa-check"></i> تحديثات تلقائية</li>
+                                <li><i class="fas fa-check"></i> يدعم جميع النماذج</li>
+                            </ul>
+                        </p>
+                        <p class="mode-requirements">
+                            <strong>المتطلبات:</strong> اتصال إنترنت مستقر
+                        </p>
+                    </div>
+                    <button class="mode-select-btn" onclick="selectMode('online')">
+                        <i class="fas fa-play"></i> بدء التشغيل
+                    </button>
+                </div>
+                
+                <!-- وضع الأوفلاين -->
+                <div class="mode-card" id="offlineModeCard">
+                    <div class="mode-icon">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <div class="mode-info">
+                        <h4>🟡 وضع الأوفلاين</h4>
+                        <p class="mode-description">
+                            <strong>المزايا:</strong>
+                            <ul>
+                                <li><i class="fas fa-check"></i> يعمل بدون إنترنت</li>
+                                <li><i class="fas fa-check"></i> خصوصية كاملة</li>
+                                <li><i class="fas fa-check"></i> سرعة متوسطة</li>
+                                <li><i class="fas fa-check"></i> دائم التوفر</li>
+                            </ul>
+                        </p>
+                        <div class="mode-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>تنبيه:</strong> يتطلب تحميل النماذج على جهازك
+                        </div>
+                    </div>
+                    <button class="mode-select-btn" onclick="showOfflineRequirements()">
+                        <i class="fas fa-info-circle"></i> عرض المتطلبات
+                    </button>
+                </div>
+            </div>
+            
+            <!-- توصية تلقائية -->
+            <div class="auto-recommendation" id="autoRecommendation">
+                <div class="recommendation-header">
+                    <i class="fas fa-robot"></i>
+                    <h4>توصية ذكية بناءً على جهازك</h4>
+                </div>
+                <p id="recommendationText">جارٍ تحليل جهازك...</p>
+                <button class="btn-secondary" onclick="useRecommendedMode()">
+                    <i class="fas fa-magic"></i> استخدام الوضع الموصى به
+                </button>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <p class="mode-note">
+                <i class="fas fa-info-circle"></i>
+                يمكنك تغيير الوضع لاحقًا من الإعدادات
+            </p>
+        </div>
+    </div>
+</div>
 
+<!-- نافذة متطلبات الأوفلاين -->
+<div class="modal" id="offlineRequirementsModal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-mobile-alt"></i> متطلبات وضع الأوفلاين</h3>
+            <button class="close-modal" onclick="hideOfflineRequirements()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <!-- فحص المساحة -->
+            <div class="requirement-check" id="storageCheck">
+                <div class="check-header">
+                    <h4><i class="fas fa-hdd"></i> المساحة التخزينية</h4>
+                    <span class="check-status" id="storageStatus">جارٍ الفحص...</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="storageProgress" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="storageText">0%</span>
+                </div>
+                <div class="storage-details">
+                    <div class="storage-item">
+                        <span>النماذج المطلوبة:</span>
+                        <span id="modelsSize">6.2 GB</span>
+                    </div>
+                    <div class="storage-item">
+                        <span>المساحة المتوفرة:</span>
+                        <span id="availableStorage">-- GB</span>
+                    </div>
+                    <div class="storage-item">
+                        <span>المساحة المتبقية بعد التثبيت:</span>
+                        <span id="remainingStorage">-- GB</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- فحص الذاكرة -->
+            <div class="requirement-check" id="memoryCheck">
+                <div class="check-header">
+                    <h4><i class="fas fa-memory"></i> الذاكرة العشوائية (RAM)</h4>
+                    <span class="check-status" id="memoryStatus">جارٍ الفحص...</span>
+                </div>
+                <div class="memory-details">
+                    <div class="memory-item">
+                        <span>الذاكرة المطلوبة:</span>
+                        <span>4 GB (موصى به)</span>
+                    </div>
+                    <div class="memory-item">
+                        <span>ذاكرة جهازك:</span>
+                        <span id="deviceMemory">-- GB</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- اختيار النماذج -->
+            <div class="model-selection">
+                <h4><i class="fas fa-cogs"></i> اختر النماذج المراد تثبيتها</h4>
+                <p class="selection-note">يمكنك اختيار نموذج واحد أو أكثر حسب المساحة المتوفرة</p>
+                
+                <div class="model-options">
+                    <div class="model-option">
+                        <div class="option-header">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="modelPhi3" checked>
+                                <span class="checkmark"></span>
+                            </label>
+                            <div class="option-info">
+                                <h5>Phi-3-mini</h5>
+                                <p>نموذج سريع للمهام اليومية</p>
+                            </div>
+                            <span class="model-size-option">1.1 GB</span>
+                        </div>
+                    </div>
+                    
+                    <div class="model-option">
+                        <div class="option-header">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="modelQwen">
+                                <span class="checkmark"></span>
+                            </label>
+                            <div class="option-info">
+                                <h5>Qwen-3-Max</h5>
+                                <p>الأفضل للغة العربية</p>
+                            </div>
+                            <span class="model-size-option">2.3 GB</span>
+                        </div>
+                    </div>
+                    
+                    <div class="model-option">
+                        <div class="option-header">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="modelDeepseek">
+                                <span class="checkmark"></span>
+                            </label>
+                            <div class="option-info">
+                                <h5>DeepSeek-Coder</h5>
+                                <p>متخصص في البرمجة</p>
+                            </div>
+                            <span class="model-size-option">2.8 GB</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="total-size">
+                    <span>المساحة الإجمالية المطلوبة:</span>
+                    <span id="totalSize">1.1 GB</span>
+                </div>
+            </div>
+            
+            <!-- نصائح التثبيت -->
+            <div class="installation-tips">
+                <h4><i class="fas fa-lightbulb"></i> نصائح مهمة قبل التثبيت</h4>
+                <div class="tips-list">
+                    <div class="tip">
+                        <i class="fas fa-plug"></i>
+                        <p>تأكد من توصيل الجهاز بالشحن أثناء التحميل</p>
+                    </div>
+                    <div class="tip">
+                        <i class="fas fa-wifi"></i>
+                        <p>استخدم اتصال WiFi سريع (غير بيانات الجوال)</p>
+                    </div>
+                    <div class="tip">
+                        <i class="fas fa-bell"></i>
+                        <p>لا تغلق التطبيق أثناء التحميل</p>
+                    </div>
+                    <div class="tip">
+                        <i class="fas fa-trash"></i>
+                        <p>يمكنك حذف نماذج غير مستخدمة لاحقًا</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="hideOfflineRequirements()">
+                <i class="fas fa-arrow-right"></i> العودة
+            </button>
+            <button class="btn-primary" id="installBtn" onclick="startOfflineInstallation()">
+                <i class="fas fa-download"></i> بدء التثبيت
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- نافذة تثبيت الأوفلاين -->
+<div class="modal" id="offlineInstallModal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-download"></i> جارٍ تثبيت النماذج</h3>
+        </div>
+        
+        <div class="modal-body">
+            <div class="installation-progress">
+                <div class="install-step active">
+                    <div class="step-number">1</div>
+                    <div class="step-info">
+                        <h5>تحضير المساحة</h5>
+                        <p>إخلاء مساحة كافية للتثبيت</p>
+                    </div>
+                    <div class="step-status">
+                        <i class="fas fa-check" id="step1Check"></i>
+                    </div>
+                </div>
+                
+                <div class="install-step">
+                    <div class="step-number">2</div>
+                    <div class="step-info">
+                        <h5>تحميل النماذج</h5>
+                        <p id="currentModelDownload">جارٍ تحميل Phi-3-mini...</p>
+                    </div>
+                    <div class="step-status">
+                        <i class="fas fa-spinner fa-spin" id="step2Spinner"></i>
+                    </div>
+                </div>
+                
+                <div class="install-step">
+                    <div class="step-number">3</div>
+                    <div class="step-info">
+                        <h5>فك الضغط</h5>
+                        <p>استخراج ملفات النماذج</p>
+                    </div>
+                    <div class="step-status">
+                        <i class="fas fa-clock" id="step3Icon"></i>
+                    </div>
+                </div>
+                
+                <div class="install-step">
+                    <div class="step-number">4</div>
+                    <div class="step-info">
+                        <h5>التفعيل</h5>
+                        <p>تفعيل النماذج للاستخدام</p>
+                    </div>
+                    <div class="step-status">
+                        <i class="fas fa-clock" id="step4Icon"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- شريط التقدم العام -->
+            <div class="overall-progress">
+                <h5>التقدم العام</h5>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="overallProgress" style="width: 0%"></div>
+                    </div>
+                    <span class="progress-text" id="overallProgressText">0%</span>
+                </div>
+            </div>
+            
+            <!-- تفاصيل التحميل -->
+            <div class="download-details">
+                <div class="detail-item">
+                    <span>النموذج الحالي:</span>
+                    <span id="currentModelName">Phi-3-mini</span>
+                </div>
+                <div class="detail-item">
+                    <span>حجم الملف:</span>
+                    <span id="currentModelFileSize">1.1 GB</span>
+                </div>
+                <div class="detail-item">
+                    <span>السرعة:</span>
+                    <span id="downloadSpeed">-- KB/s</span>
+                </div>
+                <div class="detail-item">
+                    <span>الوقت المتبقي:</span>
+                    <span id="timeRemaining">--</span>
+                </div>
+                <div class="detail-item">
+                    <span>البيانات المستخدمة:</span>
+                    <span id="dataUsed">0 MB</span>
+                </div>
+            </div>
+            
+            <!-- نصائح أثناء التحميل -->
+            <div class="download-tips">
+                <div class="tip active">
+                    <i class="fas fa-info-circle"></i>
+                    <p>يمكنك استخدام التطبيق أثناء التحميل ولكن بسرعة محدودة</p>
+                </div>
+                <div class="tip">
+                    <i class="fas fa-mobile-alt"></i>
+                    <p>توقف التحميل عند إغلاق التطبيق وسيستأنف تلقائيًا</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-footer">
+            <button class="btn-secondary" onclick="pauseInstallation()" id="pauseBtn">
+                <i class="fas fa-pause"></i> إيقاف مؤقت
+            </button>
+            <button class="btn-secondary" onclick="cancelInstallation()">
+                <i class="fas fa-times"></i> إلغاء
+            </button>
+        </div>
+    </div>
+                </div>
     <!-- الشريط الجانبي (القائمة) -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">

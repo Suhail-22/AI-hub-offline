@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qwen-chat-v1';
+const CACHE_NAME = 'qwen-chat-v3';
 const urlsToCache = [
   '/',
   '/index.html',

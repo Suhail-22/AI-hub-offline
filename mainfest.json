@@ -12,23 +12,12 @@
   "lang": "ar",
   "icons": [
     {
-      "src": "https://img.icons8.com/color/96/000000/artificial-intelligence.png",
-      "sizes": "96x96",
-      "type": "image/png"
-    },
-    {
       "src": "https://img.icons8.com/color/192/000000/artificial-intelligence.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
-    },
-    {
-      "src": "https://img.icons8.com/color/512/000000/artificial-intelligence.png",
-      "sizes": "512x512",
-      "type": "image/png"
     }
   ],
-  "categories": ["productivity", "education", "utilities"],
-  "display_override": ["window-controls-overlay", "standalone"],
+  "categories": ["productivity", "education"],
   "prefer_related_applications": false
 }

@@ -21,16 +21,201 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- التطبيق بالكامل سيتم إنشاؤه بواسطة JavaScript -->
-    <div id="app-root"></div>
-    
-    <!-- JavaScript Modules -->
-    <script src="js/pwa.js" type="module"></script>
-    <script src="js/config.js" type="module"></script>
-    <script src="js/storage.js" type="module"></script>
-    <script src="js/models.js" type="module"></script>
-    <script src="js/ui.js" type="module"></script>
-    <script src="js/chat.js" type="module"></script>
-    <script src="js/app.js" type="module"></script>
+    <!-- التطبيق -->
+    <div id="app">
+        <!-- شريط التنبيهات -->
+        <div class="alert-bar" id="alertBar">
+            <span id="alertText">جارٍ التحميل...</span>
+            <button class="close-alert" id="closeAlert">✕</button>
+        </div>
+
+        <!-- زر تثبيت التطبيق -->
+        <button class="install-btn" id="installBtn">
+            <i class="fas fa-download"></i> تثبيت التطبيق
+        </button>
+
+        <!-- الشريط العلوي -->
+        <header class="top-bar">
+            <button class="menu-btn" id="menuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h1>مركز الذكاء الاصطناعي</h1>
+            </div>
+            
+            <div class="header-actions">
+                <button class="icon-btn" id="newChatBtn" title="محادثة جديدة">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button class="icon-btn" id="themeBtn" title="تبديل السمة">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- الخلفية للقائمة الجانبية -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- القائمة الجانبية -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-robot"></i> النماذج المتاحة</h3>
+                <button class="close-sidebar" id="closeSidebar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="model-list" id="modelList">
+                <!-- سيتم ملؤه بواسطة JavaScript -->
+            </div>
+            
+            <div class="specialization-section">
+                <h4><i class="fas fa-magic"></i> التخصصات السريعة</h4>
+                <div class="specialty-buttons">
+                    <button class="specialty-btn" data-action="writer">
+                        <i class="fas fa-pen"></i> كاتب محتوى
+                    </button>
+                    <button class="specialty-btn" data-action="coder">
+                        <i class="fas fa-code"></i> مبرمج
+                    </button>
+                    <button class="specialty-btn" data-action="assistant">
+                        <i class="fas fa-assistive-listening-systems"></i> مساعد يومي
+                    </button>
+                    <button class="specialty-btn" data-action="researcher">
+                        <i class="fas fa-search"></i> باحث
+                    </button>
+                </div>
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="storage-info">
+                    <div class="storage-bar">
+                        <div class="storage-fill" id="storageFill"></div>
+                    </div>
+                    <span id="storageText">0 / 50 MB مستخدم</span>
+                </div>
+                
+                <div class="user-section">
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <p class="user-name">زائر</p>
+                            <div class="connection-status">
+                                <span class="status-indicator" id="connectionStatusDot"></span>
+                                <span id="connectionStatusText">جارٍ التحقق...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="login-btn" id="settingsBtn" title="الإعدادات">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- المحتوى الرئيسي -->
+        <main class="main-content">
+            <!-- منطقة الترحيب -->
+            <div class="welcome-section" id="welcomeSection">
+                <div class="welcome-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h2>مرحبًا بك في مركز الذكاء الاصطناعي</h2>
+                <p class="welcome-text" id="welcomeText">اختر نموذجًا من القائمة الجانبية لتبدأ المحادثة</p>
+                
+                <div class="quick-actions">
+                    <div class="quick-action-card" data-action="question">
+                        <i class="fas fa-question-circle"></i>
+                        <h4>اطرح سؤالاً</h4>
+                        <p>اسأل عن أي موضوع تريده</p>
+                    </div>
+                    <div class="quick-action-card" data-action="code">
+                        <i class="fas fa-code"></i>
+                        <h4>اكتب كودًا</h4>
+                        <p>أنشئ أو صحح أكواد برمجية</p>
+                    </div>
+                    <div class="quick-action-card" data-action="translate">
+                        <i class="fas fa-language"></i>
+                        <h4>ترجمة</h4>
+                        <p>ترجم بين اللغات المختلفة</p>
+                    </div>
+                    <div class="quick-action-card" data-action="creative">
+                        <i class="fas fa-paint-brush"></i>
+                        <h4>إبداع</h4>
+                        <p>أنشئ محتوى إبداعيًا</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- منطقة المحادثة -->
+            <div class="chat-container" id="chatContainer">
+                <div class="chat-header">
+                    <div class="current-model-info">
+                        <span class="model-badge" id="currentModelBadge">
+                            <i class="fas fa-bolt"></i> Phi-3-mini
+                        </span>
+                        <span class="model-status-indicator" id="modelStatus">
+                            <span class="status-dot active"></span> <span id="modelStatusText">جاهز</span>
+                        </span>
+                    </div>
+                    <div class="chat-actions">
+                        <button class="chat-action-btn" id="clearChatBtn">
+                            <i class="fas fa-trash"></i> مسح المحادثة
+                        </button>
+                        <button class="chat-action-btn" id="openSettingsBtn">
+                            <i class="fas fa-cog"></i> الإعدادات
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="messages-container" id="messagesContainer">
+                    <!-- الرسائل تظهر هنا -->
+                </div>
+            </div>
+        </main>
+
+        <!-- شريط الإدخال -->
+        <div class="input-container">
+            <div class="input-wrapper">
+                <div class="input-left-buttons">
+                    <button class="input-btn" id="attachFileBtn" title="إرفاق ملف">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                    <button class="input-btn" id="thinkingBtn" title="وضع التفكير">
+                        <i class="fas fa-brain"></i>
+                    </button>
+                </div>
+                
+                <div class="input-main">
+                    <textarea 
+                        id="messageInput" 
+                        placeholder="اكتب رسالتك هنا... (اضغط Enter للإرسال)"
+                        rows="1"
+                    ></textarea>
+                </div>
+                
+                <div class="input-right-buttons">
+                    <button class="input-btn" id="webSearchBtn" title="بحث على الويب">
+                        <i class="fas fa-globe"></i>
+                    </button>
+                    <button class="send-btn" id="sendButton" title="إرسال">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="input-hint">
+                <span>Shift+Enter للسطر الجديد</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/app-simple.js"></script>
 </body>
 </html>

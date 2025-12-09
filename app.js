@@ -1,167 +1,183 @@
-// ===== تحديثات الدوال الرئيسية =====
+// ===== التهيئة والتكوين =====
 class AIHubApp {
     constructor() {
-        // ... الكود السابق ...
+        this.currentModel = 'phi3';
+        this.messages = [];
+        this.isSidebarOpen = false;
+        this.isCompareMode = false;
+        this.isDarkMode = false;
+        this.isLoggedIn = false;
+        this.isLoading = false;
+        this.thinkingMode = false;
+        this.voiceRecording = false;
+        this.highlightedMessages = new Set(); // لتتبع الرسائل المميزة
         
-        // تحديث: إضافة محادثات متعددة
-        this.conversations = [];
-        this.currentConversationId = null;
-        
-        // تحديث: حالة النماذج
-        this.modelStatus = {
-            phi3: { loaded: true, available: true },
-            qwen: { loaded: false, available: false },
-            deepseek: { loaded: false, available: false }
+        this.models = {
+            phi3: {
+                name: 'Phi-3-mini',
+                icon: 'fas fa-bolt',
+                color: '#34a853',
+                size: '1.1GB',
+                status: 'active'
+            },
+            qwen: {
+                name: 'Qwen-3-Max',
+                icon: 'fas fa-crown',
+                color: '#1a73e8',
+                size: '2.3GB',
+                status: 'inactive'
+            },
+            deepseek: {
+                name: 'DeepSeek-Coder',
+                icon: 'fas fa-code',
+                color: '#ea4335',
+                size: '2.8GB',
+                status: 'inactive'
+            }
         };
         
         this.init();
     }
 
-    // ===== تحديث: فتح محادثة جديدة =====
-    newChat() {
-        // إنشاء محادثة جديدة
-        const newConversation = {
-            id: 'conv-' + Date.now(),
-            title: 'محادثة جديدة ' + (this.conversations.length + 1),
-            messages: [],
-            timestamp: new Date().toISOString(),
-            model: this.currentModel
-        };
+    // ===== التهيئة الأولية =====
+    async init() {
+        console.log('🚀 تهيئة مركز الذكاء الاصطناعي...');
         
-        // إضافة للمحادثات
-        this.conversations.push(newConversation);
-        this.currentConversationId = newConversation.id;
-        this.messages = [];
+        // تحميل الإعدادات
+        this.loadSettings();
         
-        // تحديث الواجهة
-        this.clearChatUI();
+        // تهيئة واجهة المستخدم
+        this.initUI();
         
-        // تحديث قائمة المحادثات في الشريط الجانبي
-        this.updateConversationsList();
+        // تسجيل Service Worker
+        this.registerServiceWorker();
         
-        // إظهار النموذج الحالي
-        this.showCurrentModel();
+        // تحديث حالة التخزين
+        this.updateStorageInfo();
         
-        this.showAlert('تم إنشاء محادثة جديدة', 'success');
+        console.log('✅ التهيئة اكتملت بنجاح');
+        this.showAlert('مرحبًا بك في مركز الذكاء الاصطناعي!', 'success');
     }
 
-    // ===== تحديث: مسح واجهة المحادثة فقط =====
-    clearChatUI() {
-        document.getElementById('messagesContainer').innerHTML = '';
+    // ===== إدارة الواجهة =====
+    initUI() {
+        // إضافة المستمعين للأحداث
+        this.addEventListeners();
         
-        // إظهار رسالة الترحيب فقط إذا لم تكن هناك محادثات
-        if (this.conversations.length === 0) {
-            document.getElementById('welcomeSection').style.display = 'block';
-            document.getElementById('chatContainer').style.display = 'none';
-        } else {
-            document.getElementById('welcomeSection').style.display = 'none';
-            document.getElementById('chatContainer').style.display = 'block';
-        }
+        // تطبيق الوضع المظلم
+        this.applyTheme();
+        
+        // عرض رسالة ترحيب
+        this.showWelcomeMessage();
+        
+        // تحميل المحادثات السابقة
+        this.loadPreviousConversations();
     }
 
-    // ===== جديد: تحديث قائمة المحادثات =====
-    updateConversationsList() {
-        const sidebar = document.getElementById('sidebar');
-        let convList = sidebar.querySelector('.conversations-list');
+    addEventListeners() {
+        // زر الإرسال
+        document.getElementById('sendButton').addEventListener('click', () => this.sendMessage());
         
-        if (!convList) {
-            convList = document.createElement('div');
-            convList.className = 'conversations-list';
-            sidebar.querySelector('.model-list').after(convList);
-        }
-        
-        convList.innerHTML = `
-            <h4><i class="fas fa-comments"></i> المحادثات</h4>
-            ${this.conversations.map(conv => `
-                <div class="conversation-item ${conv.id === this.currentConversationId ? 'active' : ''}" 
-                     onclick="app.loadConversation('${conv.id}')">
-                    <i class="fas fa-comment"></i>
-                    <span>${conv.title}</span>
-                    <small>${new Date(conv.timestamp).toLocaleTimeString('ar-SA', {hour: '2-digit', minute:'2-digit'})}</small>
-                </div>
-            `).join('')}
-        `;
-    }
-
-    // ===== جديد: تحميل محادثة =====
-    loadConversation(conversationId) {
-        const conversation = this.conversations.find(c => c.id === conversationId);
-        if (!conversation) return;
-        
-        this.currentConversationId = conversationId;
-        this.messages = conversation.messages;
-        this.currentModel = conversation.model;
-        
-        // تحديث الواجهة
-        this.updateChatUI();
-        this.updateModelUI();
-        
-        this.showAlert('تم تحميل المحادثة', 'info');
-    }
-
-    // ===== جديد: تحديث واجهة المحادثة =====
-    updateChatUI() {
-        const messagesContainer = document.getElementById('messagesContainer');
-        messagesContainer.innerHTML = '';
-        
-        this.messages.forEach(msg => {
-            this.addMessageToUI(msg.sender, msg.content, msg.modelId, false);
+        // الإدخال بالضغط على Enter
+        document.getElementById('messageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.sendMessage();
+            }
         });
         
-        document.getElementById('welcomeSection').style.display = 'none';
-        document.getElementById('chatContainer').style.display = 'block';
+        // التبديل بين أوضاع التسجيل
+        document.querySelectorAll('.login-option').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.login-option').forEach(b => b.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                this.toggleLoginForm(e.currentTarget.textContent.includes('البريد') ? 'email' : 'guest');
+            });
+        });
     }
 
-    // ===== تحديث: إضافة رسالة مع حفظ =====
-    addMessage(sender, content, modelId = null) {
-        const messageId = 'msg-' + Date.now();
+    // ===== إدارة المحادثات =====
+    async sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
         
-        // إضافة للواجهة
-        this.addMessageToUI(sender, content, modelId, true);
+        if (!message) return;
         
-        // حفظ في المصفوفة
-        const message = {
-            id: messageId,
-            sender,
-            content,
-            modelId,
-            timestamp: new Date().toISOString()
-        };
+        // إضافة رسالة المستخدم
+        this.addMessage('user', message);
+        input.value = '';
+        this.autoResize(input);
         
-        this.messages.push(message);
+        // عرض رسالة "جارٍ التفكير"
+        const thinkingMsgId = this.showThinkingMessage();
         
-        // تحديث المحادثة الحالية
-        const conversation = this.conversations.find(c => c.id === this.currentConversationId);
-        if (conversation) {
-            conversation.messages = this.messages;
-            conversation.timestamp = new Date().toISOString();
+        try {
+            // معالجة الرسالة حسب النموذج
+            let response;
+            
+            if (this.isCompareMode) {
+                // وضع المقارنة
+                response = await this.processComparison(message);
+            } else {
+                // وضع النموذج الواحد
+                response = await this.processMessage(message);
+            }
+            
+            // إزالة رسالة "جارٍ التفكير"
+            this.removeThinkingMessage(thinkingMsgId);
+            
+            // إضافة رد النموذج مع إمكانية التمييز
+            const messageId = this.addMessage('ai', response, this.currentModel);
+            
+            // تلقائيًا تمييز الرسائل المهمة
+            if (this.shouldHighlight(message)) {
+                this.highlightMessage(messageId);
+            }
+            
+            // حفظ المحادثة
+            this.saveConversation();
+            
+        } catch (error) {
+            console.error('❌ خطأ في معالجة الرسالة:', error);
+            this.removeThinkingMessage(thinkingMsgId);
+            this.addMessage('ai', 'عذرًا، حدث خطأ أثناء معالجة رسالتك. يرجى المحاولة مرة أخرى.', 'error');
         }
-        
-        // حفظ في localStorage
-        this.saveConversations();
     }
 
-    // ===== جديد: إضافة رسالة للواجهة فقط =====
-    addMessageToUI(sender, content, modelId = null, animate = true) {
+    shouldHighlight(message) {
+        // قائمة بالكلمات المهمة التي تستدعي التمييز
+        const importantKeywords = [
+            'مهم', 'عاجل', 'تنبيه', 'تحذير', 'انتبه',
+            'ضروري', 'فوري', 'حيوي', 'حساس', 'سرّي'
+        ];
+        
+        return importantKeywords.some(keyword => 
+            message.toLowerCase().includes(keyword.toLowerCase())
+        );
+    }
+
+    addMessage(sender, content, modelId = null) {
         const messagesContainer = document.getElementById('messagesContainer');
         
         // إخفاء رسالة الترحيب
         document.getElementById('welcomeSection').style.display = 'none';
         document.getElementById('chatContainer').style.display = 'block';
         
+        const messageId = 'msg-' + Date.now();
         const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${sender}-message ${animate ? 'fade-in' : ''}`;
+        messageDiv.className = `message ${sender}-message`;
+        messageDiv.id = messageId;
         
         if (sender === 'user') {
             messageDiv.innerHTML = `
                 <div class="message-content">
                     ${this.escapeHtml(content)}
                     <div class="message-actions">
-                        <button class="message-action-btn" onclick="app.copyMessage(this)">
+                        <button class="message-action-btn" onclick="app.copyMessage('${messageId}')">
                             <i class="fas fa-copy"></i>
                         </button>
-                        <button class="message-action-btn" onclick="app.editMessage(this)">
-                            <i class="fas fa-edit"></i>
+                        <button class="message-action-btn" onclick="app.highlightMessage('${messageId}')">
+                            <i class="fas fa-star"></i>
                         </button>
                     </div>
                 </div>
@@ -179,11 +195,14 @@ class AIHubApp {
                     </div>
                     <div class="message-text">${this.formatResponse(content)}</div>
                     <div class="message-actions">
-                        <button class="message-action-btn" onclick="app.copyMessage(this)">
+                        <button class="message-action-btn" onclick="app.copyMessage('${messageId}')">
                             <i class="fas fa-copy"></i>
                         </button>
-                        <button class="message-action-btn" onclick="app.regenerateMessage(this)">
-                            <i class="fas fa-redo"></i>
+                        <button class="message-action-btn" onclick="app.highlightMessage('${messageId}')">
+                            <i class="fas fa-star"></i>
+                        </button>
+                        <button class="message-action-btn" onclick="app.downloadMessage('${messageId}')">
+                            <i class="fas fa-download"></i>
                         </button>
                     </div>
                 </div>
@@ -192,102 +211,196 @@ class AIHubApp {
         
         messagesContainer.appendChild(messageDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+        // حفظ الرسالة
+        this.messages.push({
+            id: messageId,
+            sender,
+            content,
+            modelId,
+            timestamp: new Date().toISOString(),
+            highlighted: false
+        });
+        
+        return messageId;
     }
 
-    // ===== تحديث: تفعيل النماذج =====
-    async loadModel(modelId) {
-        const model = this.models[modelId];
+    highlightMessage(messageId) {
+        const messageDiv = document.getElementById(messageId);
+        if (!messageDiv) return;
         
-        // إذا كان النموذج مفعل بالفعل
-        if (this.modelStatus[modelId].loaded) {
-            this.showAlert(`${model.name} مفعل بالفعل`, 'info');
-            return true;
+        const isHighlighted = this.highlightedMessages.has(messageId);
+        
+        if (isHighlighted) {
+            // إزالة التمييز
+            messageDiv.classList.remove('message-highlight');
+            this.highlightedMessages.delete(messageId);
+            
+            // تحديث الرسالة في الذاكرة
+            const messageIndex = this.messages.findIndex(m => m.id === messageId);
+            if (messageIndex > -1) {
+                this.messages[messageIndex].highlighted = false;
+            }
+            
+            this.showAlert('تم إزالة التمييز من الرسالة', 'info');
+        } else {
+            // إضافة التمييز
+            messageDiv.classList.add('message-highlight');
+            this.highlightedMessages.add(messageId);
+            
+            // تحديث الرسالة في الذاكرة
+            const messageIndex = this.messages.findIndex(m => m.id === messageId);
+            if (messageIndex > -1) {
+                this.messages[messageIndex].highlighted = true;
+            }
+            
+            this.showAlert('تم تمييز الرسالة بالمربع الأحمر', 'success');
         }
         
-        // عرض نافذة التحميل
-        this.showLoading(`تحميل ${model.name}`, `جارٍ تحميل ${model.name} (${model.size})...`);
-        
-        try {
-            // محاكاة تحميل النموذج
-            await this.simulateModelLoading(modelId);
-            
-            // تحديث الحالة
-            this.modelStatus[modelId].loaded = true;
-            this.modelStatus[modelId].available = true;
-            
-            // تحديث الواجهة
-            this.updateModelStatusUI(modelId);
-            
-            this.hideLoading();
-            this.showAlert(`تم تفعيل ${model.name} بنجاح!`, 'success');
-            return true;
-            
-        } catch (error) {
-            this.hideLoading();
-            this.showAlert(`فشل تحميل ${model.name}`, 'error');
-            return false;
-        }
+        // حفظ التغييرات
+        this.saveConversation();
     }
 
-    // ===== جديد: محاكاة تحميل النموذج =====
-    simulateModelLoading(modelId) {
+    showThinkingMessage() {
+        const messagesContainer = document.getElementById('messagesContainer');
+        const thinkingId = 'thinking-' + Date.now();
+        
+        const thinkingDiv = document.createElement('div');
+        thinkingDiv.className = 'message ai-message thinking';
+        thinkingDiv.id = thinkingId;
+        thinkingDiv.innerHTML = `
+            <div class="ai-avatar" style="background-color: ${this.models[this.currentModel].color}">
+                <i class="${this.models[this.currentModel].icon}"></i>
+            </div>
+            <div class="message-content">
+                <div class="thinking-indicator">
+                    <span></span><span></span><span></span>
+                </div>
+                <p>جارٍ التفكير...</p>
+            </div>
+        `;
+        
+        messagesContainer.appendChild(thinkingDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+        return thinkingId;
+    }
+
+    // ===== معالجة الرسائل =====
+    async processMessage(message) {
+        // محاكاة استجابة النموذج مع تحسينات
         return new Promise((resolve) => {
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += Math.random() * 15;
-                if (progress > 100) progress = 100;
-                
-                this.updateProgress(progress);
-                
-                // معلومات مختلفة حسب النموذج
-                const messages = {
-                    phi3: ['جاري تحميل الأوزان...', 'تهيئة الذاكرة...', 'جارٍ التحضير...'],
-                    qwen: ['تحميل معالج اللغة العربية...', 'تهيئة النموذج الكبير...', 'جارٍ التحضير...'],
-                    deepseek: ['تحميل مكتبة البرمجة...', 'تهيئة محولات التعليم...', 'جارٍ التحضير...']
+            setTimeout(() => {
+                const responses = {
+                    phi3: `هذا رد من Phi-3-mini (السريع والخفيف):
+                    
+📌 **سؤالك:** "${message}"
+
+Phi-3-mini مصمم للمهام اليومية السريعة والردود المختصرة. إنه مثالي للأجهزة محدودة الموارد.
+
+💡 **نصيحة:** يمكنك استخدامي للمحادثات اليومية، الأسئلة العامة، والمهام البسيطة.
+
+🔧 **مثال:** إذا كنت تريد مساعدة في كتابة بريد إلكتروني، قل: "اكتب لي بريد إلكتروني..."`,
+                    
+                    qwen: `هذا رد من Qwen-3-Max (المتقدم للعربية):
+                    
+🎯 **تحليل السؤال:** "${message}"
+
+Qwen-3-Max يتميز بدعم ممتاز للغة العربية والقدرة على معالجة الأسئلة المعقدة. لديّ معرفة شاملة في مختلف المجالات.
+
+📚 **معلومات إضافية:** يمكنني تقديم إجابات مفصلة مع الاستشهاد بمصادر موثوقة (في وضع الاتصال).
+
+🌍 **دعم اللغة:** العربية الفصحى والعامية المدعومة بشكل كامل.`,
+                    
+                    deepseek: `// رد من DeepSeek-Coder (المتخصص في البرمجة):
+/*
+سؤالك: "${message}"
+*/
+
+// DeepSeek-Coder متخصص في حل المشاكل البرمجية
+// يمكنه كتابة، تصحيح، وتحليل الأكواد
+
+function generateAnswer(question) {
+    // تحليل نوع السؤال
+    const questionType = analyzeQuestionType(question);
+    
+    // توليد الحل المناسب
+    switch(questionType) {
+        case 'code-writing':
+            return generateCodeSolution(question);
+        case 'debugging':
+            return debugCode(question);
+        case 'explanation':
+            return explainConcept(question);
+        default:
+            return provideGeneralHelp(question);
+    }
+}
+
+// 💻 أمثلة على ما يمكنني فعله:
+// 1. كتابة كود بلغة معينة
+// 2. تصحيح الأخطاء في الكود
+// 3. شرح مفاهيم برمجية`
                 };
                 
-                if (progress % 30 === 0) {
-                    const msgIndex = Math.floor(progress / 30) % messages[modelId].length;
-                    document.getElementById('loadingMessage').textContent = messages[modelId][msgIndex];
-                }
-                
-                if (progress === 100) {
-                    clearInterval(interval);
-                    setTimeout(resolve, 500);
-                }
-            }, 300);
+                resolve(responses[this.currentModel] || 'نموذج غير متوفر');
+            }, 1500);
         });
     }
 
-    // ===== جديد: تحديث حالة النموذج في الواجهة =====
-    updateModelStatusUI(modelId) {
-        const modelItem = document.querySelector(`[data-model="${modelId}"]`);
-        if (modelItem) {
-            const statusDot = modelItem.querySelector('.status-dot');
-            const sizeBadge = modelItem.querySelector('.model-size');
-            
-            if (this.modelStatus[modelId].loaded) {
-                statusDot.classList.add('active');
-                statusDot.style.backgroundColor = '#34a853';
-                if (sizeBadge) {
-                    sizeBadge.innerHTML = '<i class="fas fa-check"></i> مفعل';
-                }
-            }
-        }
+    // ===== الأدوات المساعدة =====
+    formatResponse(text) {
+        // تحويل الروابط
+        text = text.replace(/https?:\/\/[^\s]+/g, '<a href="$&" target="_blank" class="text-link">$&</a>');
+        
+        // تنسيق الأكواد
+        text = text.replace(/```([\s\S]*?)```/g, (match, code) => {
+            const randomId = 'code-' + Math.random().toString(36).substr(2, 9);
+            return `
+                <div class="code-block">
+                    <div class="code-header">
+                        <span><i class="fas fa-code"></i> كود</span>
+                        <button class="copy-code-btn" onclick="app.copyToClipboard('${randomId}')">
+                            <i class="fas fa-copy"></i> نسخ
+                        </button>
+                    </div>
+                    <pre id="${randomId}">${this.escapeHtml(code.trim())}</pre>
+                </div>
+            `;
+        });
+        
+        // تنسيق العناوين
+        text = text.replace(/^# (.*$)/gm, '<h4 class="response-heading">$1</h4>');
+        text = text.replace(/^## (.*$)/gm, '<h5 class="response-subheading">$1</h5>');
+        
+        // تنسيق النقاط
+        text = text.replace(/^- (.*$)/gm, '<div class="list-item"><i class="fas fa-circle"></i> $1</div>');
+        
+        // تنسيق الأسطر
+        text = text.replace(/\n\n/g, '</p><p>');
+        text = text.replace(/\n/g, '<br>');
+        
+        return `<p>${text}</p>`;
     }
 
-    // ===== تحديث: اختيار النموذج =====
-    async selectModel(modelId) {
-        // إذا كان النموذج غير محمل، نحمله أولاً
-        if (!this.modelStatus[modelId].loaded) {
-            const loaded = await this.loadModel(modelId);
-            if (!loaded) return;
-        }
-        
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    autoResize(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight) + 'px';
+    }
+
+    // ===== إدارة الحالة =====
+    selectModel(modelId) {
         // تحديث النموذج السابق
         const previousModel = document.querySelector(`[data-model="${this.currentModel}"]`);
         if (previousModel) {
             previousModel.classList.remove('active');
+            previousModel.querySelector('.status-dot').classList.remove('active');
         }
         
         // تحديث النموذج الجديد
@@ -296,438 +409,520 @@ class AIHubApp {
         const newModel = document.querySelector(`[data-model="${modelId}"]`);
         if (newModel) {
             newModel.classList.add('active');
+            newModel.querySelector('.status-dot').classList.add('active');
         }
         
         // تحديث الشارة العلوية
-        this.showCurrentModel();
+        const badge = document.getElementById('currentModelBadge');
+        badge.innerHTML = `
+            <i class="${this.models[modelId].icon}"></i>
+            ${this.models[modelId].name}
+        `;
+        badge.style.backgroundColor = this.models[modelId].color;
         
         // إظهار التنبيه
         this.showAlert(`تم التبديل إلى ${this.models[modelId].name}`, 'info');
     }
 
-    // ===== جديد: عرض النموذج الحالي =====
-    showCurrentModel() {
-        const badge = document.getElementById('currentModelBadge');
-        const model = this.models[this.currentModel];
-        
-        badge.innerHTML = `
-            <i class="${model.icon}"></i>
-            ${model.name}
-        `;
-        badge.style.backgroundColor = model.color;
-        
-        // تحديث حالة الاتصال
-        const status = document.getElementById('modelStatus');
-        if (status) {
-            status.innerHTML = `
-                <span class="status-dot active"></span>
-                ${this.modelStatus[this.currentModel].loaded ? 'مفعل وجاهز' : 'غير محمل'}
-            `;
-        }
-    }
-
-    // ===== تحديث: وضع المقارنة =====
-    async toggleCompareMode() {
-        const toggle = document.getElementById('compareToggle');
+    toggleCompareMode() {
         this.isCompareMode = !this.isCompareMode;
+        const toggle = document.getElementById('compareToggle');
         
         if (toggle) {
             toggle.checked = this.isCompareMode;
         }
         
         if (this.isCompareMode) {
-            // التأكد من تحميل جميع النماذج
-            const modelsToLoad = ['phi3', 'qwen', 'deepseek'].filter(m => !this.modelStatus[m].loaded);
-            
-            if (modelsToLoad.length > 0) {
-                this.showAlert('جارٍ تحميل النماذج للمقارنة...', 'info');
-                
-                for (const modelId of modelsToLoad) {
-                    await this.loadModel(modelId);
-                }
-            }
-            
             this.showAlert('تم تفعيل وضع المقارنة. سيتم عرض ردود النماذج الثلاثة معًا.', 'info');
             document.getElementById('comparisonSection').style.display = 'block';
         } else {
             document.getElementById('comparisonSection').style.display = 'none';
         }
+        
+        // حفظ الإعداد
+        this.saveSettings();
     }
 
-    // ===== تحديث: معالجة المقارنة =====
-    async processComparison(message) {
-        // إظهار قسم المقارنة
-        document.getElementById('comparisonSection').style.display = 'block';
+    toggleSidebar() {
+        this.isSidebarOpen = !this.isSidebarOpen;
+        const sidebar = document.getElementById('sidebar');
         
-        // مسح المحتوى القديم وإظهار مؤشر التحميل
-        const models = ['phi3', 'qwen', 'deepseek'];
-        models.forEach(modelId => {
-            const card = document.getElementById(`${modelId}Comparison`);
-            if (card) {
-                const contentDiv = card.querySelector('.comparison-content');
-                const timeBadge = card.querySelector('.time-badge');
-                
-                contentDiv.innerHTML = `
-                    <div class="thinking-indicator">
-                        <span></span><span></span><span></span>
-                    </div>
-                    <p style="text-align: center; color: var(--text-secondary);">
-                        جارٍ المعالجة...
-                    </p>
-                `;
-                timeBadge.textContent = '--';
-            }
-        });
-        
-        // معالجة كل نموذج
-        const results = [];
-        
-        for (const modelId of models) {
-            const startTime = Date.now();
-            
-            // محاكاة استجابة مختلفة لكل نموذج
-            const response = await this.simulateComparisonResponse(modelId, message);
-            const timeTaken = Date.now() - startTime;
-            
-            // تحديث البطاقة
-            this.updateComparisonCard(modelId, response, timeTaken);
-            
-            results.push({ modelId, response, timeTaken });
-        }
-        
-        console.log('✅ نتائج المقارنة:', results);
-        return results;
-    }
-
-    // ===== جديد: محاكاة استجابة المقارنة =====
-    async simulateComparisonResponse(modelId, message) {
-        // تأخير مختلف لكل نموذج
-        const delays = { phi3: 800, qwen: 1500, deepseek: 1200 };
-        
-        // استجابات مختلفة لكل نموذج
-        const responses = {
-            phi3: `**Phi-3-mini** (الأسرع):
-• سرعة الرد: ⚡ فائقة
-• استخدام الذاكرة: 🟢 منخفض
-• مثالي للمحادثات اليومية والسريعة
-• دعم اللغة العربية: 🟢 جيد
-
-"${message.substring(0, 40)}..." - تمت معالجته بسرعة وفعالية.`,
-
-            qwen: `**Qwen-3-Max** (الأفضل للعربية):
-• سرعة الرد: 🟡 متوسطة
-• استخدام الذاكرة: 🟡 متوسط
-• الأفضل للغة العربية والأسئلة المعقدة
-• دعم اللغة العربية: 🟢 ممتاز
-
-"${message.substring(0, 40)}..." - تم تحليله بعمق مع التركيز على الدقة اللغوية.`,
-
-            deepseek: `**DeepSeek-Coder** (المتخصص):
-• سرعة الرد: 🟡 متوسطة
-• استخدام الذاكرة: 🔴 مرتفع
-• متخصص في البرمجة وحل المشكلات
-• دعم اللغة العربية: 🟢 جيد
-
-"${message.substring(0, 40)}..." - تمت معالجته بمنظور برمجي وخوارزمي.`
-        };
-        
-        await new Promise(resolve => setTimeout(resolve, delays[modelId]));
-        return responses[modelId];
-    }
-
-    // ===== جديد: حفظ المحادثات =====
-    saveConversations() {
-        const data = {
-            conversations: this.conversations,
-            currentConversationId: this.currentConversationId,
-            currentModel: this.currentModel,
-            modelStatus: this.modelStatus
-        };
-        
-        localStorage.setItem('aiHubConversations', JSON.stringify(data));
-    }
-
-    // ===== جديد: تحميل المحادثات المحفوظة =====
-    loadSavedConversations() {
-        const saved = localStorage.getItem('aiHubConversations');
-        if (saved) {
-            try {
-                const data = JSON.parse(saved);
-                this.conversations = data.conversations || [];
-                this.currentConversationId = data.currentConversationId;
-                this.currentModel = data.currentModel || 'phi3';
-                this.modelStatus = data.modelStatus || this.modelStatus;
-                
-                // إذا كان هناك محادثة حالية، تحميلها
-                if (this.currentConversationId && this.conversations.length > 0) {
-                    this.loadConversation(this.currentConversationId);
-                }
-                
-                // تحديث حالة النماذج
-                Object.keys(this.modelStatus).forEach(modelId => {
-                    this.updateModelStatusUI(modelId);
-                });
-                
-                console.log('✅ تم تحميل المحادثات المحفوظة');
-            } catch (error) {
-                console.error('❌ خطأ في تحميل المحادثات:', error);
-            }
+        if (this.isSidebarOpen) {
+            sidebar.classList.add('open');
+        } else {
+            sidebar.classList.remove('open');
         }
     }
 
-    // ===== تحديث: التهيئة =====
-    async init() {
-        console.log('🚀 تهيئة مركز الذكاء الاصطناعي...');
+    toggleTheme() {
+        this.isDarkMode = !this.isDarkMode;
+        document.documentElement.setAttribute('data-theme', this.isDarkMode ? 'dark' : 'light');
         
-        // تحميل الإعدادات
-        this.loadSettings();
+        // حفظ الإعداد
+        localStorage.setItem('darkMode', this.isDarkMode);
         
-        // تحميل المحادثات المحفوظة
-        this.loadSavedConversations();
+        // تحديث الأيقونة
+        const themeIcon = document.querySelector('.icon-btn .fa-moon, .icon-btn .fa-sun');
+        if (themeIcon) {
+            themeIcon.className = this.isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+        }
         
-        // تهيئة واجهة المستخدم
-        this.initUI();
+        this.showAlert(`تم تفعيل الوضع ${this.isDarkMode ? 'المظلم' : 'الفاتح'}`, 'info');
+    }
+
+    // ===== التنبيهات والإشعارات =====
+    showAlert(message, type = 'info') {
+        const alertBar = document.getElementById('alertBar');
+        const alertText = document.getElementById('alertText');
         
-        // تسجيل Service Worker
-        this.registerServiceWorker();
+        // تعيين اللون حسب النوع
+        const colors = {
+            success: '#34a853',
+            error: '#ea4335',
+            warning: '#fbbc05',
+            info: '#1a73e8'
+        };
         
-        // تحميل النماذج الأساسية
-        await this.loadInitialModels();
+        alertBar.style.background = `linear-gradient(135deg, ${colors[type]}, ${colors[type]}99)`;
+        alertText.textContent = message;
+        alertBar.style.display = 'flex';
         
-        // تحديث حالة التخزين
+        // إخفاء تلقائي بعد 5 ثوانٍ
+        setTimeout(() => {
+            this.hideAlert();
+        }, 5000);
+    }
+
+    hideAlert() {
+        document.getElementById('alertBar').style.display = 'none';
+    }
+
+    // ===== إدارة البيانات =====
+    saveConversation() {
+        const conversation = {
+            messages: this.messages,
+            model: this.currentModel,
+            timestamp: new Date().toISOString(),
+            id: 'conv-' + Date.now()
+        };
+        
+        // حفظ في localStorage
+        const conversations = JSON.parse(localStorage.getItem('conversations') || '[]');
+        conversations.push(conversation);
+        localStorage.setItem('conversations', JSON.stringify(conversations.slice(-50))); // حفظ آخر 50 محادثة
+        
+        // تحديث معلومات التخزين
         this.updateStorageInfo();
-        
-        console.log('✅ التهيئة اكتملت بنجاح');
-        this.showAlert('مرحبًا بك في مركز الذكاء الاصطناعي!', 'success');
     }
 
-    // ===== جديد: تحميل النماذج الأولية =====
-    async loadInitialModels() {
-        // تحميل Phi-3 تلقائيًا (النموذج الخفيف)
-        if (!this.modelStatus.phi3.loaded) {
-            await this.loadModel('phi3');
+    loadPreviousConversations() {
+        const conversations = JSON.parse(localStorage.getItem('conversations') || '[]');
+        if (conversations.length > 0) {
+            // تحميل آخر محادثة
+            const lastConversation = conversations[conversations.length - 1];
+            this.currentModel = lastConversation.model || 'phi3';
+            
+            // عرض زر لتحميل المحادثات السابقة
+            this.showAlert('يوجد محادثات سابقة. استخدم زر "تحميل المحادثات" في الإعدادات.', 'info');
+        }
+    }
+
+    loadSettings() {
+        // تحميل الوضع المظلم
+        const savedDarkMode = localStorage.getItem('darkMode');
+        this.isDarkMode = savedDarkMode === 'true';
+        
+        // تحميل الإعدادات الأخرى
+        const settings = JSON.parse(localStorage.getItem('aiHubSettings') || '{}');
+        this.isCompareMode = settings.compareMode || false;
+        this.thinkingMode = settings.thinkingMode || false;
+    }
+
+    saveSettings() {
+        const settings = {
+            compareMode: this.isCompareMode,
+            darkMode: this.isDarkMode,
+            thinkingMode: this.thinkingMode,
+            autoSave: true
+        };
+        
+        localStorage.setItem('aiHubSettings', JSON.stringify(settings));
+    }
+
+    updateStorageInfo() {
+        // حساب حجم البيانات المحفوظة
+        let totalSize = 0;
+        
+        // حجم المحادثات
+        const conversations = localStorage.getItem('conversations');
+        if (conversations) {
+            totalSize += new Blob([conversations]).size;
+        }
+        
+        // حجم الإعدادات
+        const settings = localStorage.getItem('aiHubSettings');
+        if (settings) {
+            totalSize += new Blob([settings]).size;
+        }
+        
+        // تحويل للـ MB
+        const sizeInMB = (totalSize / (1024 * 1024)).toFixed(2);
+        
+        // تحديث واجهة المستخدم
+        const storageText = document.querySelector('.storage-info span');
+        if (storageText) {
+            storageText.textContent = `${sizeInMB} / 50 MB مستخدم`;
+        }
+        
+        const storageFill = document.querySelector('.storage-fill');
+        if (storageFill) {
+            const percentage = (sizeInMB / 50) * 100;
+            storageFill.style.width = `${Math.min(percentage, 100)}%`;
+        }
+    }
+
+    // ===== Service Worker =====
+    registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('✅ Service Worker مسجل:', registration.scope);
+                        this.showAlert('التطبيق يعمل الآن بدون إنترنت!', 'success');
+                    })
+                    .catch(error => {
+                        console.log('❌ فشل تسجيل Service Worker:', error);
+                    });
+            });
+        }
+    }
+
+    // ===== الوظائف العامة =====
+    clearChat() {
+        if (confirm('هل تريد مسح المحادثة الحالية؟')) {
+            document.getElementById('messagesContainer').innerHTML = '';
+            this.messages = [];
+            this.highlightedMessages.clear();
+            
+            // إظهار رسالة الترحيب
+            document.getElementById('welcomeSection').style.display = 'block';
+            document.getElementById('chatContainer').style.display = 'none';
+            
+            this.showAlert('تم مسح المحادثة', 'info');
+        }
+    }
+
+    copyMessage(messageId) {
+        const messageDiv = document.getElementById(messageId);
+        if (!messageDiv) return;
+        
+        const messageText = messageDiv.querySelector('.message-text')?.textContent || 
+                           messageDiv.querySelector('.message-content')?.textContent;
+        
+        navigator.clipboard.writeText(messageText).then(() => {
+            this.showAlert('تم نسخ الرسالة إلى الحافظة', 'success');
+        }).catch(() => {
+            // طريقة بديلة للمتصفحات القديمة
+            const textArea = document.createElement('textarea');
+            textArea.value = messageText;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            this.showAlert('تم نسخ الرسالة إلى الحافظة', 'success');
+        });
+    }
+
+    copyToClipboard(textId) {
+        const textElement = document.getElementById(textId);
+        if (!textElement) return;
+        
+        navigator.clipboard.writeText(textElement.textContent).then(() => {
+            this.showAlert('تم نسخ الكود إلى الحافظة', 'success');
+        });
+    }
+
+    downloadMessage(messageId) {
+        const messageDiv = document.getElementById(messageId);
+        if (!messageDiv) return;
+        
+        const messageText = messageDiv.querySelector('.message-text')?.textContent || 
+                           messageDiv.querySelector('.message-content')?.textContent;
+        
+        const blob = new Blob([messageText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        
+        a.href = url;
+        a.download = `رسالة-${messageId}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        this.showAlert('تم تنزيل الرسالة', 'success');
+    }
+
+    // ===== معالجة الإجراءات السريعة =====
+    handleSpecialty(specialty) {
+        const prompts = {
+            writer: 'أريد مساعدتك في كتابة محتوى. أنا أبحث عن مساعد يمكنه كتابة مقالات، منشورات، ورسائل إلكترونية بلغة عربية فصيحة.',
+            coder: 'أحتاج مساعدة في البرمجة. هل يمكنك مساعدتي في كتابة، تصحيح، أو تحليل الأكواد البرمجية؟',
+            assistant: 'أبحث عن مساعد يومي يمكنه الإجابة على أسئلتي، تنظيم مهامي، وتقديم النصائح العملية.'
+        };
+        
+        document.getElementById('messageInput').value = prompts[specialty] || specialty;
+        this.autoResize(document.getElementById('messageInput'));
+        this.showAlert(`تم تعيين وضع "${specialty}" - يمكنك تعديل النص قبل الإرسال`, 'info');
+    }
+
+    handleQuickAction(action) {
+        const actions = {
+            'question': 'ما هي أحدث التطورات في الذكاء الاصطناعي في عام 2025؟',
+            'code': 'اكتب دالة في JavaScript لتحويل JSON إلى CSV',
+            'translate': 'ترجم الجملة التالية إلى الإنجليزية: "الذكاء الاصطناعي هو مستقبل التكنولوجيا"',
+            'writer': 'أريد كتابة مقال عن أهمية الذكاء الاصطناعي في التعليم',
+            'coder': 'ساعدني في تصحيح هذا الكود الذي به خطأ',
+            'assistant': 'ما هي أفضل الممارسات لتنظيم الوقت؟'
+        };
+        
+        const message = actions[action] || action;
+        document.getElementById('messageInput').value = message;
+        this.autoResize(document.getElementById('messageInput'));
+        
+        // إرسال تلقائي للإجراءات السريعة
+        setTimeout(() => this.sendMessage(), 500);
+    }
+
+    // ===== الدوال العامة للاستدعاء من HTML =====
+    toggleLoginModal() {
+        const modal = document.getElementById('loginModal');
+        modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    toggleSettingsModal() {
+        const modal = document.getElementById('settingsModal');
+        modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    toggleLoginForm(type) {
+        const emailForm = document.getElementById('emailLoginForm');
+        const guestWarning = document.getElementById('guestWarning');
+        
+        if (type === 'email') {
+            emailForm.style.display = 'block';
+            guestWarning.style.display = 'none';
+        } else {
+            emailForm.style.display = 'none';
+            guestWarning.style.display = 'block';
+        }
+    }
+
+    loginWithEmail() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        
+        if (!email || !password) {
+            this.showAlert('يرجى ملء جميع الحقول', 'error');
+            return;
+        }
+        
+        // محاكاة تسجيل الدخول
+        this.showAlert('جارٍ التحقق من بياناتك...', 'info');
+        
+        setTimeout(() => {
+            this.isLoggedIn = true;
+            
+            // تحديث واجهة المستخدم
+            document.querySelector('.user-name').textContent = email.split('@')[0];
+            document.querySelector('.user-status').textContent = 'متصل';
+            document.querySelector('.user-avatar').innerHTML = '<i class="fas fa-user-check"></i>';
+            
+            this.toggleLoginModal();
+            this.showAlert('تم تسجيل الدخول بنجاح!', 'success');
+        }, 1500);
+    }
+
+    continueAsGuest() {
+        this.toggleLoginModal();
+        this.showAlert('أنت الآن في وضع الزائر. لن يتم حفظ محادثاتك على السحابة.', 'info');
+    }
+
+    applyTheme() {
+        if (this.isDarkMode) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            const themeIcon = document.querySelector('.icon-btn .fa-moon');
+            if (themeIcon) {
+                themeIcon.className = 'fas fa-sun';
+            }
+        }
+    }
+
+    showWelcomeMessage() {
+        const welcomeMessages = [
+            "مرحبًا! أنا مساعدك الذكي. يمكنني الإجابة على أسئلتك ومساعدتك في مختلف المهام.",
+            "اختر نموذجًا من القائمة الجانبية لتبدأ. كل نموذج له تخصصه ومميزاته.",
+            "جرب وضع المقارنة لترى كيف تختلف ردود النماذج عن بعضها.",
+            "يمكنك استخدام الأزرار السريعة للبدء مباشرة في المهام الشائعة."
+        ];
+        
+        const randomMessage = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+        document.querySelector('.welcome-text').textContent = randomMessage;
+    }
+
+    attachFile() {
+        this.showAlert('ميزة رفع الملفات قيد التطوير. ستتوفر قريبًا!', 'info');
+    }
+
+    toggleThinkingMode() {
+        this.thinkingMode = !this.thinkingMode;
+        const btn = document.querySelector('.input-tool-btn:nth-child(2)');
+        
+        if (this.thinkingMode) {
+            btn.classList.add('active');
+            this.showAlert('تم تفعيل وضع التفكير العميق', 'info');
+        } else {
+            btn.classList.remove('active');
+            this.showAlert('تم إيقاف وضع التفكير العميق', 'info');
+        }
+    }
+
+    toggleWebSearch() {
+        this.showAlert('البحث على الويب غير متاح في الوضع غير المتصل', 'warning');
+    }
+
+    toggleVoiceInput() {
+        this.voiceRecording = !this.voiceRecording;
+        const voiceBtn = document.getElementById('voiceButton');
+        
+        if (this.voiceRecording) {
+            voiceBtn.classList.add('recording');
+            this.showAlert('جارٍ التسجيل... تحدث الآن', 'info');
+            
+            // محاكاة التسجيل
+            setTimeout(() => {
+                this.voiceRecording = false;
+                voiceBtn.classList.remove('recording');
+                
+                // نص محاكاة للصوت
+                const voiceMessages = [
+                    "مرحبًا، كيف يمكنني مساعدتك اليوم؟",
+                    "أنا جاهز للإجابة على أسئلتك",
+                    "هل تريد معرفة المزيد عن الذكاء الاصطناعي؟"
+                ];
+                
+                const randomMessage = voiceMessages[Math.floor(Math.random() * voiceMessages.length)];
+                document.getElementById('messageInput').value = randomMessage;
+                this.autoResize(document.getElementById('messageInput'));
+                
+                this.showAlert('تم التعرف على الصوت بنجاح', 'success');
+            }, 3000);
+        } else {
+            voiceBtn.classList.remove('recording');
+            this.showAlert('تم إيقاف التسجيل', 'info');
+        }
+    }
+
+    clearAllData() {
+        if (confirm('هل تريد مسح جميع البيانات بما في ذلك المحادثات والإعدادات؟ هذا الإجراء لا يمكن التراجع عنه.')) {
+            localStorage.clear();
+            this.showAlert('تم مسح جميع البيانات', 'success');
+            setTimeout(() => location.reload(), 1000);
+        }
+    }
+
+    saveSettings() {
+        const settings = {
+            compareMode: document.getElementById('compareToggle').checked,
+            darkMode: document.getElementById('darkModeToggle').checked,
+            autoSave: document.getElementById('autoSave').checked,
+            autoLoadModels: document.getElementById('autoLoadModels').checked,
+            powerSaverMode: document.getElementById('powerSaverMode').checked
+        };
+        
+        localStorage.setItem('aiHubSettings', JSON.stringify(settings));
+        this.showAlert('تم حفظ الإعدادات', 'success');
+        this.toggleSettingsModal();
+    }
+
+    exportChat() {
+        const chatData = {
+            messages: this.messages,
+            model: this.currentModel,
+            date: new Date().toLocaleString('ar-SA'),
+            highlightedMessages: Array.from(this.highlightedMessages)
+        };
+        
+        const blob = new Blob([JSON.stringify(chatData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        
+        a.href = url;
+        a.download = `محادثة-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        this.showAlert('تم تصدير المحادثة', 'success');
+    }
+
+    cancelLoading() {
+        this.showAlert('تم إلغاء التحميل', 'warning');
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+
+    removeThinkingMessage(messageId) {
+        const element = document.getElementById(messageId);
+        if (element) {
+            element.remove();
         }
     }
 }
 
-// ===== تحديثات الـ CSS =====
-// أضف هذا في ملف style.css
-const additionalCSS = `
-/* ===== المحادثات ===== */
-.conversations-list {
-    padding: 20px;
-    border-top: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-    max-height: 300px;
-    overflow-y: auto;
-}
+// ===== تهيئة التطبيق =====
+let app;
 
-.conversations-list h4 {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-    color: var(--text-color);
-    font-size: 16px;
-}
-
-.conversation-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 15px;
-    margin-bottom: 8px;
-    border-radius: var(--border-radius-md);
-    background-color: var(--bg-secondary);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.conversation-item:hover {
-    background-color: var(--bg-tertiary);
-    transform: translateX(-5px);
-}
-
-.conversation-item.active {
-    background-color: rgba(26, 115, 232, 0.1);
-    border-left: 3px solid var(--primary-color);
-}
-
-.conversation-item i {
-    color: var(--primary-color);
-    font-size: 14px;
-    width: 20px;
-}
-
-.conversation-item span {
-    flex: 1;
-    font-size: 14px;
-    color: var(--text-color);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.conversation-item small {
-    font-size: 11px;
-    color: var(--text-secondary);
-}
-
-/* ===== مؤشر التفكير ===== */
-.thinking-indicator {
-    display: flex;
-    justify-content: center;
-    gap: 4px;
-    margin: 15px 0;
-}
-
-.thinking-indicator span {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: var(--primary-color);
-    animation: bounce 1.4s infinite ease-in-out both;
-}
-
-.thinking-indicator span:nth-child(1) { animation-delay: -0.32s; }
-.thinking-indicator span:nth-child(2) { animation-delay: -0.16s; }
-
-@keyframes bounce {
-    0%, 80%, 100% { transform: scale(0); }
-    40% { transform: scale(1.0); }
-}
-
-/* ===== رسوم متحركة ===== */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
+window.addEventListener('DOMContentLoaded', () => {
+    app = new AIHubApp();
+    window.app = app; // لجعل التطبيق متاحًا عالميًا
+    
+    // تهيئة الإعدادات في الواجهة
+    const settings = JSON.parse(localStorage.getItem('aiHubSettings') || '{}');
+    if (document.getElementById('compareToggle')) {
+        document.getElementById('compareToggle').checked = settings.compareMode || false;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    if (document.getElementById('darkModeToggle')) {
+        document.getElementById('darkModeToggle').checked = settings.darkMode || false;
     }
-}
-
-.fade-in {
-    animation: fadeIn 0.3s ease;
-}
-
-/* ===== تحسين واجهة تسجيل الدخول ===== */
-.login-tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 10px;
-}
-
-.login-tab {
-    flex: 1;
-    padding: 12px;
-    background: none;
-    border: none;
-    border-radius: var(--border-radius-md);
-    font-family: var(--font-primary);
-    font-size: 14px;
-    color: var(--text-secondary);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.2s;
-}
-
-.login-tab.active {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-.login-tab:hover:not(.active) {
-    background-color: var(--bg-secondary);
-}
-
-.login-tab-content {
-    animation: fadeIn 0.3s ease;
-}
-
-.form-input {
-    width: 100%;
-    padding: 12px 15px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-md);
-    font-family: var(--font-primary);
-    font-size: 15px;
-    background-color: var(--bg-secondary);
-    color: var(--text-color);
-    transition: border-color 0.2s;
-}
-
-.form-input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-}
-
-.btn-block {
-    width: 100%;
-    margin-top: 15px;
-}
-
-.login-divider {
-    display: flex;
-    align-items: center;
-    margin: 20px 0;
-    color: var(--text-secondary);
-}
-
-.login-divider::before,
-.login-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background-color: var(--border-color);
-}
-
-.login-divider span {
-    padding: 0 15px;
-    font-size: 14px;
-}
-
-.guest-info {
-    text-align: center;
-    padding: 20px 0;
-}
-
-.guest-icon {
-    font-size: 60px;
-    color: var(--primary-color);
-    margin-bottom: 15px;
-}
-
-.guest-info h4 {
-    margin-bottom: 10px;
-    color: var(--text-color);
-}
-
-.guest-info p {
-    color: var(--text-secondary);
-    margin-bottom: 25px;
-    line-height: 1.6;
-}
-`;
-
-// أضف الـ CSS الإضافي
-document.addEventListener('DOMContentLoaded', () => {
-    const style = document.createElement('style');
-    style.textContent = additionalCSS;
-    document.head.appendChild(style);
 });
 
-// ===== التعديلات النهائية للدوال العامة =====
-function newChat() { app.newChat(); }
-function clearChat() { 
-    if (confirm('هل تريد مسح المحادثة الحالية فقط؟')) {
-        app.clearChatUI(); 
+// ===== دوال عامة للاستدعاء من HTML =====
+function toggleSidebar() { app.toggleSidebar(); }
+function toggleTheme() { app.toggleTheme(); }
+function newChat() { app.clearChat(); }
+function selectModel(modelId) { app.selectModel(modelId); }
+function toggleCompareMode() { app.toggleCompareMode(); }
+function sendMessage() { app.sendMessage(); }
+function autoResize(el) { app.autoResize(el); }
+function handleKeyDown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        app.sendMessage();
     }
 }
+function toggleLoginModal() { app.toggleLoginModal(); }
+function toggleSettingsModal() { app.toggleSettingsModal(); }
+function loginWithEmail() { app.loginWithEmail(); }
+function continueAsGuest() { app.continueAsGuest(); }
+function selectLoginOption(type) { app.toggleLoginForm(type); }
+function hideAlert() { app.hideAlert(); }
+function quickAction(action) { app.handleQuickAction(action); }
+function attachFile() { app.attachFile(); }
+function toggleThinkingMode() { app.toggleThinkingMode(); }
+function toggleWebSearch() { app.toggleWebSearch(); }
+function toggleVoiceInput() { app.toggleVoiceInput(); }
+function clearAllData() { app.clearAllData(); }
+function saveSettings() { app.saveSettings(); }
+function exportChat() { app.exportChat(); }
+function cancelLoading() { app.cancelLoading(); }

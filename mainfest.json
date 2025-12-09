@@ -1,78 +1,47 @@
 {
-  "name": "مركز الذكاء الاصطناعي - بدون إنترنت",
+  "name": "AI Hub - مركز الذكاء الاصطناعي",
   "short_name": "AI Hub",
-  "description": "تطبيق يجمع بين عدة نماذج ذكاء اصطناعي محلية للعمل دون إنترنت",
-  "lang": "ar",
-  "dir": "rtl",
-  "start_url": "./index.html",
+  "description": "تطبيق ذكاء اصطناعي يعمل بدون إنترنت",
+  "start_url": ".",
+  "scope": "/AI-hub-offline/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1a73e8",
   "orientation": "portrait",
-  "scope": "./",
-  "id": "/AI-hub-offline/",
-  "categories": ["productivity", "utilities"],
   "icons": [
     {
-      "src": "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f9e0.png",
-      "sizes": "64x64",
+      "src": "https://img.icons8.com/color/96/000000/artificial-intelligence.png",
+      "sizes": "96x96",
       "type": "image/png"
     },
     {
-      "src": "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/128/1f9e0.png",
-      "sizes": "128x128",
+      "src": "https://img.icons8.com/color/144/000000/artificial-intelligence.png",
+      "sizes": "144x144",
       "type": "image/png"
     },
     {
-      "src": "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/192/1f9e0.png",
+      "src": "https://img.icons8.com/color/192/000000/artificial-intelligence.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/512/1f9e0.png",
+      "src": "https://img.icons8.com/color/512/000000/artificial-intelligence.png",
       "sizes": "512x512",
       "type": "image/png"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "https://via.placeholder.com/540x720/1a73e8/ffffff?text=AI+Hub",
-      "sizes": "540x720",
-      "type": "image/png",
-      "form_factor": "narrow"
-    },
-    {
-      "src": "https://via.placeholder.com/720x540/1a73e8/ffffff?text=AI+Hub",
-      "sizes": "720x540",
-      "type": "image/png",
-      "form_factor": "wide"
     }
   ],
   "shortcuts": [
     {
       "name": "محادثة جديدة",
-      "short_name": "جديد",
-      "description": "بدء محادثة جديدة",
-      "url": "./index.html?new",
-      "icons": [
-        {
-          "src": "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/96/1f4ac.png",
-          "sizes": "96x96"
-        }
-      ]
+      "url": "./index.html?new=true",
+      "description": "بدء محادثة جديدة"
     },
     {
       "name": "مقارنة النماذج",
-      "short_name": "مقارنة",
-      "description": "مقارنة ردود النماذج المختلفة",
-      "url": "./index.html?compare",
-      "icons": [
-        {
-          "src": "https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/96/2696.png",
-          "sizes": "96x96"
-        }
-      ]
+      "url": "./index.html?compare=true",
+      "description": "مقارنة نماذج الذكاء الاصطناعي"
     }
-  ]
+  ],
+  "categories": ["productivity", "utilities", "education"]
 }

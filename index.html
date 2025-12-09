@@ -1,15 +1,36 @@
+[file name]: index.html
+[file content begin]
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>مركز الذكاء الاصطناعي - بدون إنترنت</title>
+    <title>مركز الذكاء الاصطناعي - يعمل بدون إنترنت</title>
     
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a73e8">
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="AI Hub">
+    <meta name="apple-mobile-web-app-title" content="AI Hub">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1a73e8">
+    <meta name="msapplication-TileColor" content="#1a73e8">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="description" content="تطبيق ذكاء اصطناعي محلي يعمل بدون إنترنت مع نماذج Qwen وDeepSeek وPhi-3">
+    <meta name="keywords" content="ذكاء اصطناعي, AI, محادثة, بدون إنترنت, PWA">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180x180.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167x167.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16x16.png">
+    <link rel="shortcut icon" href="icons/favicon.ico">
     
     <!-- CSS -->
     <link rel="stylesheet" href="css/style.css">
@@ -17,15 +38,42 @@
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- PWA Script -->
+    <script>
+        // تسجيل Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js')
+                    .then(function(registration) {
+                        console.log('✅ Service Worker مسجل بنجاح:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.error('❌ فشل تسجيل Service Worker:', error);
+                    });
+            });
+        }
+        
+        // اكتشاف وضع عدم الاتصال
+        window.addEventListener('online', function() {
+            console.log('🟢 اتصال بالإنترنت');
+            showAlert('تم استعادة الاتصال بالإنترنت', 'success');
+        });
+        
+        window.addEventListener('offline', function() {
+            console.log('🔴 فقدان الاتصال');
+            showAlert('أنت غير متصل بالإنترنت، التطبيق يعمل محلياً', 'warning');
+        });
+    </script>
 </head>
 <body>
     <!-- التطبيق -->
     <div id="app">
         <!-- شريط التنبيهات -->
         <div class="alert-bar" id="alertBar">
-            <span id="alertText">جارٍ التحميل...</span>
+            <span id="alertText">جاري تحميل مركز الذكاء الاصطناعي...</span>
             <button class="close-alert" id="closeAlert">✕</button>
         </div>
 
@@ -124,7 +172,7 @@
             <!-- منطقة الترحيب -->
             <div class="welcome-section" id="welcomeSection">
                 <div class="welcome-icon">
-                    <i class="fas fa-robot"></i>
+                    <i class="fas fa-brain"></i>
                 </div>
                 <h2>مرحبًا بك في مركز الذكاء الاصطناعي</h2>
                 <p class="welcome-text" id="welcomeText">اختر نموذجًا من القائمة الجانبية لتبدأ المحادثة</p>
@@ -150,6 +198,13 @@
                         <h4>إبداع</h4>
                         <p>أنشئ محتوى إبداعيًا</p>
                     </div>
+                </div>
+                
+                <!-- إضافة إشعار PWA -->
+                <div class="pwa-notice" id="pwaNotice">
+                    <i class="fas fa-mobile-alt"></i>
+                    <p>يمكنك تثبيت هذا التطبيق على جهازك لاستخدامه دون إنترنت</p>
+                    <button id="showInstallTip" class="small-btn">كيفية التثبيت</button>
                 </div>
             </div>
 
@@ -195,8 +250,12 @@
                 <div class="input-main">
                     <textarea 
                         id="messageInput" 
-                        placeholder="اكتب رسالتك هنا... (اضغط Enter للإرسال)"
+                        placeholder="اكتب رسالتك هنا... (اضغط Enter للإرسال، Shift+Enter لسطر جديد)"
                         rows="1"
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        spellcheck="true"
                     ></textarea>
                 </div>
                 
@@ -210,12 +269,70 @@
                 </div>
             </div>
             <div class="input-hint">
-                <span>Shift+Enter للسطر الجديد</span>
+                <span>التطبيق يعمل <strong>بدون إنترنت</strong> بعد التثبيت</span>
+            </div>
+        </div>
+
+        <!-- نافذة تعليمات التثبيت -->
+        <div class="modal" id="installModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-download"></i> كيفية تثبيت التطبيق</h3>
+                    <button class="close-modal" id="closeInstallModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="install-steps">
+                        <div class="install-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>في متصفح Chrome:</h4>
+                                <p>اضغط على <strong>⋮</strong> → "تثبيت التطبيق" أو "أضف إلى الشاشة الرئيسية"</p>
+                            </div>
+                        </div>
+                        <div class="install-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>في متصفح Safari:</h4>
+                                <p>اضغط على <strong>↗</strong> → "أضف إلى الشاشة الرئيسية"</p>
+                            </div>
+                        </div>
+                        <div class="install-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4>في متصفح Firefox:</h4>
+                                <p>اضغط على <strong>⋮</strong> → "تثبيت"</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="install-tips">
+                        <p><i class="fas fa-lightbulb"></i> <strong>نصيحة:</strong> بعد التثبيت، يمكنك استخدام التطبيق دون إنترنت</p>
+                        <p><i class="fas fa-sync-alt"></i> <strong>تحديث:</strong> سيتم تحديث التطبيق تلقائياً عند الاتصال</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- JavaScript -->
     <script src="js/app-simple.js"></script>
+    
+    <!-- تحميل Service Worker -->
+    <script>
+        // كشف دعم PWA
+        function checkPWA() {
+            const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                         window.navigator.standalone ||
+                         document.referrer.includes('android-app://');
+            
+            if (isPWA) {
+                console.log('📱 التطبيق مثبت كـ PWA');
+                document.getElementById('installBtn').style.display = 'none';
+            }
+        }
+        
+        // تشغيل عند تحميل الصفحة
+        window.addEventListener('load', checkPWA);
+    </script>
 </body>
 </html>
+[file content end]

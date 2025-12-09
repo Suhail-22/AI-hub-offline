@@ -1,140 +1,444 @@
-<!-- تحديث قسم تسجيل الدخول في الـ HTML -->
-<div class="modal" id="loginModal" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-user-lock"></i> تسجيل الدخول</h3>
-            <button class="close-modal" onclick="toggleLoginModal()">
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مركز الذكاء الاصطناعي - بدون إنترنت</title>
+    
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="assets/favicon.ico">
+    <meta name="theme-color" content="#1a73e8">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&family=Noto+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- شريط التنبيهات -->
+    <div class="alert-bar" id="alertBar">
+        <span id="alertText">جارٍ التحميل...</span>
+        <button class="close-alert" onclick="hideAlert()">✕</button>
+    </div>
+
+    <!-- الشريط العلوي -->
+    <header class="top-bar">
+        <button class="menu-btn" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <div class="logo">
+            <i class="fas fa-brain"></i>
+            <h1>مركز الذكاء الاصطناعي</h1>
+        </div>
+        
+        <div class="header-actions">
+            <button class="icon-btn" onclick="newChat()">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button class="icon-btn" onclick="toggleTheme()">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- الشريط الجانبي -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-robot"></i> النماذج المتاحة</h3>
+            <button class="close-sidebar" onclick="toggleSidebar()">
                 <i class="fas fa-times"></i>
             </button>
         </div>
         
-        <div class="modal-body">
-            <div class="login-tabs">
-                <button class="login-tab active" id="emailTabBtn" onclick="openLoginTab('email')">
-                    <i class="fas fa-envelope"></i> البريد الإلكتروني
-                </button>
-                <button class="login-tab" id="guestTabBtn" onclick="openLoginTab('guest')">
-                    <i class="fas fa-user-clock"></i> وضع الزائر
-                </button>
+        <div class="model-list">
+            <div class="model-item active" data-model="phi3" onclick="selectModel('phi3')">
+                <div class="model-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div class="model-info">
+                    <h4>Phi-3-mini</h4>
+                    <p>نموذج سريع وخفيف للمهام اليومية</p>
+                    <span class="model-size">1.1 GB</span>
+                </div>
+                <div class="model-status">
+                    <span class="status-dot active"></span>
+                </div>
             </div>
             
-            <!-- تسجيل الدخول بالبريد -->
-            <div class="login-tab-content" id="emailLoginContent">
-                <div class="form-group">
-                    <label for="email"><i class="fas fa-envelope"></i> البريد الإلكتروني</label>
-                    <input type="email" id="loginEmail" placeholder="example@email.com" class="form-input">
+            <div class="model-item" data-model="qwen" onclick="selectModel('qwen')">
+                <div class="model-icon">
+                    <i class="fas fa-crown"></i>
                 </div>
-                
-                <div class="form-group">
-                    <label for="password"><i class="fas fa-lock"></i> كلمة المرور</label>
-                    <div class="password-input">
-                        <input type="password" id="loginPassword" placeholder="********" class="form-input">
-                        <button type="button" class="show-password" onclick="togglePasswordVisibility()">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
+                <div class="model-info">
+                    <h4>Qwen-3-Max</h4>
+                    <p>الأفضل للغة العربية والأسئلة المعقدة</p>
+                    <span class="model-size">2.3 GB</span>
                 </div>
-                
-                <div class="form-options">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="rememberMe">
-                        <span>تذكرني</span>
+                <div class="model-status">
+                    <span class="status-dot"></span>
+                </div>
+            </div>
+            
+            <div class="model-item" data-model="deepseek" onclick="selectModel('deepseek')">
+                <div class="model-icon">
+                    <i class="fas fa-code"></i>
+                </div>
+                <div class="model-info">
+                    <h4>DeepSeek-Coder</h4>
+                    <p>متخصص في البرمجة وحل المشاكل</p>
+                    <span class="model-size">2.8 GB</span>
+                </div>
+                <div class="model-status">
+                    <span class="status-dot"></span>
+                </div>
+            </div>
+            
+            <div class="model-item compare-mode" onclick="toggleCompareMode()">
+                <div class="model-icon">
+                    <i class="fas fa-balance-scale"></i>
+                </div>
+                <div class="model-info">
+                    <h4>وضع المقارنة</h4>
+                    <p>مقارنة ردود النماذج الثلاثة</p>
+                </div>
+                <div class="compare-switch">
+                    <label class="switch">
+                        <input type="checkbox" id="compareToggle">
+                        <span class="slider"></span>
                     </label>
-                    <a href="#" class="forgot-password">نسيت كلمة المرور؟</a>
                 </div>
-                
-                <button class="btn-primary btn-block" onclick="loginWithEmail()">
-                    <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+            </div>
+        </div>
+        
+        <div class="specialization-section">
+            <h4><i class="fas fa-magic"></i> التخصصات السريعة</h4>
+            <div class="specialty-buttons">
+                <button class="specialty-btn" onclick="quickAction('writer')">
+                    <i class="fas fa-pen"></i> كاتب محتوى
                 </button>
-                
-                <div class="login-divider">
-                    <span>أو سجل دخول باستخدام</span>
+                <button class="specialty-btn" onclick="quickAction('coder')">
+                    <i class="fas fa-code"></i> مبرمج
+                </button>
+                <button class="specialty-btn" onclick="quickAction('assistant')">
+                    <i class="fas fa-assistive-listening-systems"></i> مساعد يومي
+                </button>
+            </div>
+        </div>
+        
+        <div class="sidebar-footer">
+            <div class="storage-info">
+                <div class="storage-bar">
+                    <div class="storage-fill" style="width: 35%"></div>
                 </div>
-                
-                <div class="social-login">
-                    <button class="social-btn google-btn" onclick="loginWithGoogle()">
-                        <i class="fab fa-google"></i> Google
-                    </button>
-                    <button class="social-btn github-btn" onclick="loginWithGithub()">
-                        <i class="fab fa-github"></i> GitHub
-                    </button>
-                </div>
-                
-                <p class="register-link">
-                    ليس لديك حساب؟ <a href="#" onclick="showRegisterForm()">أنشئ حسابًا جديدًا</a>
-                </p>
+                <span>2.1 / 6.2 GB مستخدم</span>
             </div>
             
-            <!-- وضع الزائر -->
-            <div class="login-tab-content" id="guestLoginContent" style="display: none;">
-                <div class="guest-info">
-                    <div class="guest-icon">
-                        <i class="fas fa-user-clock"></i>
+            <div class="user-section">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
                     </div>
-                    <h4>استكشاف التطبيق كزائر</h4>
-                    <p>يمكنك استخدام جميع الميزات الأساسية دون تسجيل دخول. المحادثات تحفظ على جهازك فقط.</p>
-                    
-                    <div class="guest-features">
-                        <div class="feature-item">
-                            <i class="fas fa-check-circle"></i>
-                            <span>استخدام جميع النماذج</span>
+                    <div>
+                        <p class="user-name">زائر</p>
+                        <p class="user-status">وضع عدم الاتصال</p>
+                    </div>
+                </div>
+                <button class="login-btn" onclick="toggleLoginModal()">
+                    <i class="fas fa-sign-in-alt"></i>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="main-content" id="mainContent">
+        <!-- منطقة الترحيب -->
+        <div class="welcome-section" id="welcomeSection">
+            <div class="welcome-icon">
+                <i class="fas fa-robot"></i>
+            </div>
+            <h2>مرحبًا بك في مركز الذكاء الاصطناعي</h2>
+            <p class="welcome-text">اختر نموذجًا من القائمة الجانبية لتبدأ المحادثة</p>
+            
+            <div class="quick-actions">
+                <div class="quick-action-card" onclick="quickAction('question')">
+                    <i class="fas fa-question-circle"></i>
+                    <h4>اطرح سؤالاً</h4>
+                    <p>اسأل عن أي موضوع تريده</p>
+                </div>
+                <div class="quick-action-card" onclick="quickAction('code')">
+                    <i class="fas fa-code"></i>
+                    <h4>اكتب كودًا</h4>
+                    <p>أنشئ أو صحح أكواد برمجية</p>
+                </div>
+                <div class="quick-action-card" onclick="quickAction('translate')">
+                    <i class="fas fa-language"></i>
+                    <h4>ترجمة</h4>
+                    <p>ترجم بين اللغات المختلفة</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- منطقة المحادثة -->
+        <div class="chat-container" id="chatContainer" style="display: none;">
+            <div class="chat-header">
+                <div class="current-model-info">
+                    <span class="model-badge" id="currentModelBadge">
+                        <i class="fas fa-bolt"></i> Phi-3-mini
+                    </span>
+                    <span class="model-status-indicator" id="modelStatus">
+                        <span class="status-dot active"></span> متصل
+                    </span>
+                </div>
+                <div class="chat-actions">
+                    <button class="chat-action-btn" onclick="clearChat()">
+                        <i class="fas fa-trash"></i> مسح المحادثة
+                    </button>
+                    <button class="chat-action-btn" onclick="exportChat()">
+                        <i class="fas fa-download"></i> حفظ المحادثة
+                    </button>
+                </div>
+            </div>
+            
+            <div class="messages-container" id="messagesContainer">
+                <!-- الرسائل تظهر هنا -->
+            </div>
+            
+            <!-- منطقة المقارنة -->
+            <div class="comparison-section" id="comparisonSection" style="display: none;">
+                <h4><i class="fas fa-balance-scale"></i> مقارنة النماذج</h4>
+                <div class="comparison-cards">
+                    <div class="comparison-card" id="phi3Comparison">
+                        <div class="comparison-header">
+                            <h5><i class="fas fa-bolt"></i> Phi-3</h5>
+                            <span class="time-badge">-- ثانية</span>
                         </div>
-                        <div class="feature-item">
-                            <i class="fas fa-check-circle"></i>
-                            <span>المحادثات تحفظ محليًا</span>
+                        <div class="comparison-content">جارٍ الانتظار...</div>
+                    </div>
+                    <div class="comparison-card" id="qwenComparison">
+                        <div class="comparison-header">
+                            <h5><i class="fas fa-crown"></i> Qwen-3</h5>
+                            <span class="time-badge">-- ثانية</span>
                         </div>
-                        <div class="feature-item">
-                            <i class="fas fa-times-circle"></i>
-                            <span>لا مزامنة مع السحابة</span>
+                        <div class="comparison-content">جارٍ الانتظار...</div>
+                    </div>
+                    <div class="comparison-card" id="deepseekComparison">
+                        <div class="comparison-header">
+                            <h5><i class="fas fa-code"></i> DeepSeek</h5>
+                            <span class="time-badge">-- ثانية</span>
                         </div>
-                        <div class="feature-item">
-                            <i class="fas fa-times-circle"></i>
-                            <span>لا حفظ للمحادثات بعد الخروج</span>
-                        </div>
+                        <div class="comparison-content">جارٍ الانتظار...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- شريط الإدخال -->
+    <div class="input-container">
+        <div class="input-tools">
+            <button class="input-tool-btn" onclick="attachFile()">
+                <i class="fas fa-paperclip"></i>
+            </button>
+            <button class="input-tool-btn" onclick="toggleThinkingMode()">
+                <i class="fas fa-brain"></i> Thinking ↓
+            </button>
+            <button class="input-tool-btn" onclick="toggleWebSearch()">
+                <i class="fas fa-globe"></i>
+            </button>
+        </div>
+        
+        <div class="input-area">
+            <textarea 
+                id="messageInput" 
+                placeholder="اكتب رسالتك هنا... (اضغط Shift + Enter للإرسال)"
+                rows="1"
+                oninput="autoResize(this)"
+                onkeydown="handleKeyDown(event)"
+            ></textarea>
+            
+            <div class="input-actions">
+                <button class="voice-btn" onclick="toggleVoiceInput()" id="voiceButton">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="send-btn" onclick="sendMessage()" id="sendButton">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="input-hints">
+            <span>نصائح: جرب "اكتب قصيدة عن الوطن" أو "اشرح خوارزمية البحث الثنائية"</span>
+        </div>
+    </div>
+
+    <!-- نافذة تسجيل الدخول -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-lock"></i> تسجيل الدخول</h3>
+                <button class="close-modal" onclick="toggleLoginModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="login-options">
+                    <button class="login-option active" onclick="selectLoginOption('email')">
+                        <i class="fas fa-envelope"></i> البريد الإلكتروني
+                    </button>
+                    <button class="login-option" onclick="selectLoginOption('guest')">
+                        <i class="fas fa-user-clock"></i> وضع الزائر
+                    </button>
+                </div>
+                
+                <div class="login-form" id="emailLoginForm">
+                    <div class="form-group">
+                        <label for="email"><i class="fas fa-envelope"></i> البريد الإلكتروني</label>
+                        <input type="email" id="email" placeholder="example@email.com">
                     </div>
                     
-                    <button class="btn-primary btn-block" onclick="continueAsGuest()">
+                    <div class="form-group">
+                        <label for="password"><i class="fas fa-lock"></i> كلمة المرور</label>
+                        <input type="password" id="password" placeholder="********">
+                    </div>
+                    
+                    <button class="login-submit-btn" onclick="loginWithEmail()">
+                        <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                    </button>
+                    
+                    <p class="login-note">
+                        <i class="fas fa-info-circle"></i>
+                        التسجيل يحفظ محادثاتك على السحابة ويمكنك الوصول إليها من أي جهاز
+                    </p>
+                </div>
+                
+                <div class="guest-warning" id="guestWarning">
+                    <div class="warning-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h4>وضع الزائر</h4>
+                    <p>في هذا الوضع، لن يتم حفظ محادثاتك على السحابة، وستحذف عند إغلاق المتصفح.</p>
+                    <button class="continue-guest-btn" onclick="continueAsGuest()">
                         <i class="fas fa-play"></i> المتابعة كزائر
                     </button>
                 </div>
             </div>
         </div>
-        
-        <div class="modal-footer">
-            <p class="privacy-notice">
-                <i class="fas fa-shield-alt"></i>
-                بياناتك محمية ولا تشارك مع أطراف ثالثة. 
-                <a href="#" onclick="showPrivacyPolicy()">شروط الخصوصية</a>
-            </p>
+    </div>
+
+    <!-- نافذة الإعدادات -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-cog"></i> الإعدادات</h3>
+                <button class="close-modal" onclick="toggleSettingsModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h4><i class="fas fa-robot"></i> إعدادات النماذج</h4>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h5>تحميل النماذج تلقائيًا</h5>
+                            <p>تحميل النماذج عند فتح التطبيق</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="autoLoadModels" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h5>وضع التوفير</h5>
+                            <p>استخدام نماذج مخففة لتوفير الذاكرة</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="powerSaverMode">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h4><i class="fas fa-user"></i> إعدادات المستخدم</h4>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h5>الوضع المظلم</h5>
+                            <p>تفعيل الوضع الداكن</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="darkModeToggle" onchange="toggleTheme()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h5>الحفظ التلقائي</h5>
+                            <p>حفظ المحادثات تلقائيًا</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="autoSave" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="clearAllData()">
+                    <i class="fas fa-trash"></i> مسح جميع البيانات
+                </button>
+                <button class="btn-primary" onclick="saveSettings()">
+                    <i class="fas fa-save"></i> حفظ الإعدادات
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-// دالة لتبديل علامات التبويب
-function openLoginTab(tabName) {
-    // تحديث الأزرار
-    document.querySelectorAll('.login-tab').forEach(tab => tab.classList.remove('active'));
-    document.getElementById(`${tabName}TabBtn`).classList.add('active');
-    
-    // تحديث المحتوى
-    document.querySelectorAll('.login-tab-content').forEach(content => {
-        content.style.display = 'none';
-    });
-    document.getElementById(`${tabName}LoginContent`).style.display = 'block';
-}
+    <!-- نافذة التحميل -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+            </div>
+            <h3 id="loadingTitle">جارٍ تحميل النموذج</h3>
+            <p id="loadingMessage">يرجى الانتظار، هذا قد يستغرق بضع دقائق...</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <span class="progress-text" id="progressText">0%</span>
+            <button class="btn-secondary cancel-btn" onclick="cancelLoading()">
+                إلغاء التحميل
+            </button>
+        </div>
+    </div>
 
-// دالة إظهار/إخفاء كلمة المرور
-function togglePasswordVisibility() {
-    const passwordInput = document.getElementById('loginPassword');
-    const eyeIcon = document.querySelector('.show-password i');
+    <!-- Scripts -->
+    <script src="app.js"></script>
+    <script src="models/model-loader.js"></script>
     
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        eyeIcon.className = 'fas fa-eye-slash';
-    } else {
-        passwordInput.type = 'password';
-        eyeIcon.className = 'fas fa-eye';
-    }
-}
-</script>
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.log('Service Worker registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>

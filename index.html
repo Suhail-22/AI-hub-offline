@@ -59,12 +59,16 @@
         // اكتشاف وضع عدم الاتصال
         window.addEventListener('online', function() {
             console.log('🟢 اتصال بالإنترنت');
-            showAlert('تم استعادة الاتصال بالإنترنت', 'success');
+            if (window.showAlert) {
+                showAlert('تم استعادة الاتصال بالإنترنت', 'success');
+            }
         });
         
         window.addEventListener('offline', function() {
             console.log('🔴 فقدان الاتصال');
-            showAlert('أنت غير متصل بالإنترنت، التطبيق يعمل محلياً', 'warning');
+            if (window.showAlert) {
+                showAlert('أنت غير متصل بالإنترنت، التطبيق يعمل محلياً', 'warning');
+            }
         });
     </script>
 </head>
@@ -144,7 +148,7 @@
                     <div class="storage-bar">
                         <div class="storage-fill" id="storageFill"></div>
                     </div>
-                    <span id="storageText">0 / 50 MB مستخدم</span>
+                    <span id="storageText">0 / 5 MB مستخدم</span>
                 </div>
                 
                 <div class="user-section">
@@ -331,7 +335,26 @@
         }
         
         // تشغيل عند تحميل الصفحة
-        window.addEventListener('load', checkPWA);
+        window.addEventListener('load', function() {
+            checkPWA();
+            
+            // تحديث حالة الاتصال
+            const isOnline = navigator.onLine;
+            const statusDot = document.getElementById('connectionStatusDot');
+            const statusText = document.getElementById('connectionStatusText');
+            
+            if (statusDot && statusText) {
+                if (isOnline) {
+                    statusDot.className = 'status-indicator online';
+                    statusText.textContent = '🟢 متصل بالإنترنت';
+                    statusText.style.color = '#34a853';
+                } else {
+                    statusDot.className = 'status-indicator offline';
+                    statusText.textContent = '🔴 غير متصل';
+                    statusText.style.color = '#ea4335';
+                }
+            }
+        });
     </script>
 </body>
 </html>

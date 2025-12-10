@@ -7,30 +7,32 @@
   <title>ذكاء اصطناعي مجمّع</title>
 
   <!-- PWA Manifest -->
-  <link rel="manifest" href="../public/manifest.json" />
-  <link rel="icon" type="image/png" sizes="192x192" href="../public/icons/icon-192x192.png" />
-  <link rel="apple-touch-icon" sizes="192x192" href="../public/icons/icon-192x192.png" />
+  <link rel="manifest" href="./manifest.json" />
+  
+  <!-- أيقونات PWA -->
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192x192.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="./icons/icon-192x192.png" />
 
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Segoe UI', Tahoma, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
     :root {
       --bg-primary: #121212;
       --bg-header: #1e1e1e;
       --bg-sidebar: #252525;
-      --text-color: #e0e0e0;
+      --text-primary: #e0e0e0;
       --border-color: #333;
       --hover-bg: #444;
     }
 
     body {
       background-color: var(--bg-primary);
-      color: var(--text-color);
+      color: var(--text-primary);
       height: 100vh;
       display: flex;
       flex-direction: column;
@@ -39,10 +41,10 @@
 
     header {
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
       padding: 12px 16px;
-      background-color: var(--bg-header);
+      background: var(--bg-header);
       position: sticky;
       top: 0;
       z-index: 100;
@@ -51,7 +53,7 @@
     #menu-toggle {
       background: none;
       border: none;
-      color: var(--text-color);
+      color: var(--text-primary);
       font-size: 1.8rem;
       cursor: pointer;
     }
@@ -64,7 +66,7 @@
     #add-button {
       background: none;
       border: none;
-      color: var(--text-color);
+      color: var(--text-primary);
       font-size: 1.8rem;
       cursor: pointer;
     }
@@ -73,49 +75,40 @@
       display: flex;
       gap: 12px;
       padding: 12px 16px;
-      background-color: var(--bg-header);
+      background: var(--bg-header);
       border-bottom: 1px solid var(--border-color);
       overflow-x: auto;
+      white-space: nowrap;
     }
 
     .tool-btn {
-      white-space: nowrap;
       padding: 6px 12px;
       background: #333;
       border: none;
       border-radius: 6px;
-      color: var(--text-color);
+      color: var(--text-primary);
       cursor: pointer;
     }
 
-    .chat-container {
+    .messages {
       flex: 1;
       padding: 16px;
       overflow-y: auto;
     }
 
-    .message {
-      margin-bottom: 16px;
-      padding: 12px;
-      background: #2a2a2a;
-      border-radius: 12px;
-      white-space: pre-wrap;
-    }
-
     .input-area {
-      margin-top: auto;
-      padding: 16px;
       display: flex;
       align-items: center;
       gap: 12px;
-      background-color: var(--bg-primary);
+      padding: 16px;
+      background: var(--bg-primary);
       border-top: 1px solid var(--border-color);
     }
 
     .input-add {
       background: none;
       border: none;
-      color: var(--text-color);
+      color: var(--text-primary);
       font-size: 1.5rem;
       cursor: pointer;
     }
@@ -123,7 +116,7 @@
     .input-field {
       flex: 1;
       background: #2a2a2a;
-      color: var(--text-color);
+      color: var(--text-primary);
       border: none;
       border-radius: 20px;
       padding: 12px 16px;
@@ -131,12 +124,12 @@
     }
 
     .action-btn {
-      background: none;
-      border: none;
-      color: var(--text-color);
       width: 36px;
       height: 36px;
       border-radius: 50%;
+      background: none;
+      border: none;
+      color: var(--text-primary);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -154,7 +147,7 @@
       left: -300px;
       width: 280px;
       height: 100vh;
-      background-color: var(--bg-sidebar);
+      background: var(--bg-sidebar);
       padding: 60px 16px 16px;
       transition: left 0.3s ease;
       z-index: 99;
@@ -195,125 +188,97 @@
 </head>
 <body>
 
+  <!-- الشريط العلوي -->
   <header>
     <button id="menu-toggle">≡</button>
     <div id="model-name">Qwen-3-Max</div>
     <button id="add-button">+</button>
   </header>
 
+  <!-- شريط الأدوات -->
   <div class="toolbar">
     <button class="tool-btn">Image Edit</button>
     <button class="tool-btn">Web Dev</button>
     <button class="tool-btn">Image Generation</button>
   </div>
 
-  <div class="chat-container" id="chat-container">
-    <div class="message">مرحباً! اختر نموذجاً من القائمة وابدأ بالكتابة.</div>
+  <!-- مساحة المحادثة -->
+  <div class="messages">
+    <p style="color: #777;">ابدأ محادثة جديدة...</p>
   </div>
 
+  <!-- حقل الإدخال -->
   <div class="input-area">
     <button class="input-add">+</button>
-    <input type="text" class="input-field" id="user-input" placeholder="اكتب سؤالك هنا..." />
+    <input type="text" class="input-field" placeholder="اكتب سؤالك هنا..." />
     <button class="action-btn">🌐</button>
     <button class="action-btn">↓</button>
-    <button class="action-btn send-btn" id="send-btn">➤</button>
+    <button class="action-btn send-btn">➤</button>
   </div>
 
+  <!-- الشريط الجانبي (القائمة) -->
   <aside id="sidebar">
-    <div class="sidebar-item" data-model="Qwen-3-Max">Qwen-3-Max</div>
-    <div class="sidebar-item" data-model="DeepSeek-Coder">DeepSeek-Coder</div>
-    <div class="sidebar-item" data-model="Phi-3-mini">Phi-3-mini</div>
-    <div class="sidebar-item" data-model="مقارنة">مقارنة بين النماذج</div>
+    <div class="sidebar-item" data-model="qwen3max">Qwen-3-Max</div>
+    <div class="sidebar-item" data-model="deepseek">DeepSeek-Coder</div>
+    <div class="sidebar-item" data-model="phi3">Phi-3-mini</div>
+    <div class="sidebar-item" data-model="compare">مقارنة بين النماذج</div>
   </aside>
 
+  <!-- طبقة التغطية -->
   <div id="overlay"></div>
 
-  <script src="../src/services/ai-service.js"></script>
+  <!-- Service Worker Registration -->
   <script>
-    // تسجيل Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('../public/sw.js')
-          .then(reg => console.log('SW registered:', reg.scope))
-          .catch(err => console.error('SW failed:', err));
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('✓ Service Worker registered:', reg.scope))
+          .catch(err => console.error('✗ Service Worker registration failed:', err));
       });
     }
+  </script>
 
-    // عناصر DOM
+  <!-- وظائف الواجهة -->
+  <script>
     const menuToggle = document.getElementById('menu-toggle');
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('overlay');
     const addButtons = [document.getElementById('add-button'), document.querySelector('.input-add')];
     const modelItems = document.querySelectorAll('.sidebar-item');
-    const modelNameEl = document.getElementById('model-name');
-    const chatContainer = document.getElementById('chat-container');
-    const userInput = document.getElementById('user-input');
-    const sendBtn = document.getElementById('send-btn');
+    const modelNameDisplay = document.getElementById('model-name');
 
-    // فتح/إغلاق القائمة
+    // فتح القائمة
     menuToggle.addEventListener('click', () => {
       sidebar.classList.add('active');
       overlay.classList.add('active');
     });
 
+    // إغلاق القائمة
     overlay.addEventListener('click', () => {
       sidebar.classList.remove('active');
       overlay.classList.remove('active');
-    });
-
-    // تغيير النموذج
-    modelItems.forEach(item => {
-      item.addEventListener('click', () => {
-        const model = item.getAttribute('data-model');
-        modelNameEl.textContent = model;
-        sidebar.classList.remove('active');
-        overlay.classList.remove('active');
-      });
     });
 
     // زر الإضافة (+)
     addButtons.forEach(btn => {
       if (btn) {
         btn.addEventListener('click', () => {
-          alert('سيتم دعم رفع الصور والصوت قريبًا!');
+          alert('سيتم دعم رفع الملفات والتسجيل الصوتي قريبًا!');
         });
       }
     });
 
-    // إرسال السؤال
-    function sendMessage() {
-      const prompt = userInput.value.trim();
-      if (!prompt) return;
-
-      // إضافة رسالة المستخدم
-      const userMsg = document.createElement('div');
-      userMsg.className = 'message';
-      userMsg.textContent = prompt;
-      userMsg.style.textAlign = 'right';
-      userMsg.style.background = '#1f4a2f';
-      chatContainer.appendChild(userMsg);
-
-      // مسح الحقل
-      userInput.value = '';
-
-      // الحصول على الرد
-      const model = modelNameEl.textContent;
-      const response = getAIResponse(model, prompt);
-
-      // إضافة رد الذكاء الاصطناعي
-      setTimeout(() => {
-        const aiMsg = document.createElement('div');
-        aiMsg.className = 'message';
-        aiMsg.innerHTML = response;
-        chatContainer.appendChild(aiMsg);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-      }, 800);
-    }
-
-    sendBtn.addEventListener('click', sendMessage);
-    userInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') sendMessage();
+    // تغيير النموذج
+    modelItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const modelName = item.textContent;
+        modelNameDisplay.textContent = modelName;
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+        console.log('🔄 النموذج المحدد:', modelName);
+      });
     });
   </script>
+
 </body>
 </html>

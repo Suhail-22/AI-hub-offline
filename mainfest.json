@@ -3,69 +3,33 @@
 {
   "name": "مركز الذكاء الاصطناعي",
   "short_name": "AI Hub",
-  "description": "تطبيق ذكاء اصطناعي يعمل بدون إنترنت مع نماذج محلية",
-  "start_url": "/AI-hub-offline/",
-  "scope": "/AI-hub-offline/",
+  "description": "تطبيق ذكاء اصطناعي يعمل بدون إنترنت",
+  "start_url": "https://suhail-22.github.io/AI-hub-offline/",
+  "scope": "https://suhail-22.github.io/AI-hub-offline/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1a73e8",
-  "orientation": "portrait-primary",
+  "orientation": "portrait",
   "dir": "rtl",
   "lang": "ar",
   "icons": [
     {
-      "src": "icons/icon-72x72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icons/icon-96x96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icons/icon-128x128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icons/icon-144x144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icons/icon-152x152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icons/icon-192x192.png",
+      "src": "https://cdn.jsdelivr.net/npm/@mdi/svg@7.2.96/svg/robot.svg",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/svg+xml",
+      "purpose": "any"
     },
     {
-      "src": "icons/icon-384x384.png",
-      "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icons/icon-512x512.png",
+      "src": "https://cdn.jsdelivr.net/npm/@mdi/svg@7.2.96/svg/robot.svg",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ],
   "categories": ["productivity", "education", "utilities"],
   "screenshots": [
     {
-      "src": "screenshots/screenshot1.png",
+      "src": "https://via.placeholder.com/1280x720/1a73e8/ffffff?text=AI+Hub",
       "sizes": "1280x720",
       "type": "image/png",
       "description": "واجهة التطبيق الرئيسية"
@@ -76,15 +40,7 @@
       "name": "محادثة جديدة",
       "short_name": "جديد",
       "description": "بدء محادثة جديدة مع الذكاء الاصطناعي",
-      "url": "/AI-hub-offline/?new=true",
-      "icons": [{ "src": "icons/icon-96x96.png", "sizes": "96x96" }]
-    },
-    {
-      "name": "مقارنة النماذج",
-      "short_name": "مقارنة",
-      "description": "مقارنة ردود النماذج المختلفة",
-      "url": "/AI-hub-offline/?mode=compare",
-      "icons": [{ "src": "icons/icon-96x96.png", "sizes": "96x96" }]
+      "url": "https://suhail-22.github.io/AI-hub-offline/?new=true"
     }
   ],
   "related_applications": [],

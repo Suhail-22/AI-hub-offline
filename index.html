@@ -1,92 +1,30 @@
-[file name]: index.html
-[file content begin]
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>مركز الذكاء الاصطناعي - يعمل بدون إنترنت</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مركز الذكاء الاصطناعي</title>
     
-    <!-- PWA Meta Tags -->
-    <meta name="application-name" content="AI Hub">
-    <meta name="apple-mobile-web-app-title" content="AI Hub">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#1a73e8">
-    <meta name="msapplication-TileColor" content="#1a73e8">
-    <meta name="msapplication-tap-highlight" content="no">
-    <meta name="description" content="تطبيق ذكاء اصطناعي محلي يعمل بدون إنترنت مع نماذج Qwen وDeepSeek وPhi-3">
-    <meta name="keywords" content="ذكاء اصطناعي, AI, محادثة, بدون إنترنت, PWA">
-    
-    <!-- PWA Manifest -->
+    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
-    
-    <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" href="icons/icon-152x152.png">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="icons/icon-32x32.png">
-    <link rel="shortcut icon" href="icons/favicon.ico">
+    <meta name="theme-color" content="#1a73e8">
     
     <!-- CSS -->
     <link rel="stylesheet" href="css/style.css">
     
     <!-- Fonts & Icons -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        /* CSS مؤقت للتحميل */
-        .loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, #1a73e8, #34a853);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            color: white;
-        }
-        
-        .loading-spinner {
-            width: 60px;
-            height: 60px;
-            border: 4px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
 </head>
 <body>
-    <!-- شاشة التحميل -->
-    <div class="loading-screen" id="loadingScreen">
-        <div class="loading-spinner"></div>
-        <h2 style="margin-bottom: 10px;">مركز الذكاء الاصطناعي</h2>
-        <p>جاري التحميل...</p>
-    </div>
-
-    <!-- التطبيق الرئيسي -->
-    <div id="app" style="display: none;">
+    <div id="app">
         <!-- شريط التنبيهات -->
         <div class="alert-bar" id="alertBar">
-            <span id="alertText">مرحباً! التطبيق جاهز للاستخدام</span>
+            <span id="alertText">جاري التحميل...</span>
             <button class="close-alert" id="closeAlert">✕</button>
         </div>
 
-        <!-- زر تثبيت التطبيق -->
+        <!-- زر تثبيت -->
         <button class="install-btn" id="installBtn">
             <i class="fas fa-download"></i> تثبيت التطبيق
         </button>
@@ -104,73 +42,39 @@
                 <h1>مركز الذكاء الاصطناعي</h1>
             </div>
             
-            <div class="header-actions">
-                <button class="icon-btn" id="newChatBtn" title="محادثة جديدة">
-                    <i class="fas fa-plus"></i>
-                </button>
-                <button class="icon-btn" id="themeBtn" title="تبديل السمة">
-                    <i class="fas fa-moon"></i>
-                </button>
-            </div>
+            <button class="icon-btn" id="newChatBtn" title="محادثة جديدة">
+                <i class="fas fa-plus"></i>
+            </button>
         </header>
 
-        <!-- الخلفية للقائمة الجانبية -->
-        <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
         <!-- القائمة الجانبية -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h3><i class="fas fa-robot"></i> النماذج المتاحة</h3>
+                <h3><i class="fas fa-robot"></i> النماذج</h3>
                 <button class="close-sidebar" id="closeSidebar">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             
             <div class="model-list" id="modelList">
-                <!-- سيتم ملؤه بواسطة JavaScript -->
+                <!-- Models will be added by JS -->
             </div>
             
             <div class="specialization-section">
-                <h4><i class="fas fa-magic"></i> التخصصات السريعة</h4>
+                <h4><i class="fas fa-magic"></i> التخصصات</h4>
                 <div class="specialty-buttons">
                     <button class="specialty-btn" data-action="writer">
-                        <i class="fas fa-pen"></i> كاتب محتوى
+                        <i class="fas fa-pen"></i> كاتب
                     </button>
                     <button class="specialty-btn" data-action="coder">
                         <i class="fas fa-code"></i> مبرمج
                     </button>
                     <button class="specialty-btn" data-action="assistant">
-                        <i class="fas fa-assistive-listening-systems"></i> مساعد يومي
+                        <i class="fas fa-assistive-listening-systems"></i> مساعد
                     </button>
                     <button class="specialty-btn" data-action="researcher">
                         <i class="fas fa-search"></i> باحث
-                    </button>
-                </div>
-            </div>
-            
-            <div class="sidebar-footer">
-                <div class="storage-info">
-                    <div class="storage-bar">
-                        <div class="storage-fill" id="storageFill"></div>
-                    </div>
-                    <span id="storageText">0 / 5 MB مستخدم</span>
-                </div>
-                
-                <div class="user-section">
-                    <div class="user-info">
-                        <div class="user-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div>
-                            <p class="user-name">زائر</p>
-                            <div class="connection-status">
-                                <span class="status-indicator" id="connectionStatusDot"></span>
-                                <span id="connectionStatusText">🟢 متصل</span>
-                            </div>
-                        </div>
-                    </div>
-                    <button class="login-btn" id="settingsBtn" title="الإعدادات">
-                        <i class="fas fa-cog"></i>
                     </button>
                 </div>
             </div>
@@ -178,68 +82,44 @@
 
         <!-- المحتوى الرئيسي -->
         <main class="main-content">
-            <!-- منطقة الترحيب -->
             <div class="welcome-section" id="welcomeSection">
                 <div class="welcome-icon">
                     <i class="fas fa-brain"></i>
                 </div>
-                <h2>مرحبًا بك في مركز الذكاء الاصطناعي</h2>
-                <p class="welcome-text" id="welcomeText">اختر نموذجًا من القائمة الجانبية لتبدأ المحادثة</p>
+                <h2>مرحبًا بك</h2>
+                <p>اختر نموذجًا لتبدأ المحادثة</p>
                 
                 <div class="quick-actions">
                     <div class="quick-action-card" data-action="question">
                         <i class="fas fa-question-circle"></i>
-                        <h4>اطرح سؤالاً</h4>
-                        <p>اسأل عن أي موضوع تريده</p>
+                        <h4>سؤال</h4>
                     </div>
                     <div class="quick-action-card" data-action="code">
                         <i class="fas fa-code"></i>
-                        <h4>اكتب كودًا</h4>
-                        <p>أنشئ أو صحح أكواد برمجية</p>
+                        <h4>كود</h4>
                     </div>
                     <div class="quick-action-card" data-action="translate">
                         <i class="fas fa-language"></i>
                         <h4>ترجمة</h4>
-                        <p>ترجم بين اللغات المختلفة</p>
                     </div>
-                    <div class="quick-action-card" data-action="creative">
-                        <i class="fas fa-paint-brush"></i>
-                        <h4>إبداع</h4>
-                        <p>أنشئ محتوى إبداعيًا</p>
-                    </div>
-                </div>
-                
-                <!-- إشعار PWA -->
-                <div class="pwa-notice" id="pwaNotice">
-                    <i class="fas fa-mobile-alt"></i>
-                    <p>يمكنك تثبيت هذا التطبيق على جهازك لاستخدامه دون إنترنت</p>
-                    <button id="showInstallTip" class="small-btn">كيفية التثبيت</button>
                 </div>
             </div>
 
             <!-- منطقة المحادثة -->
-            <div class="chat-container" id="chatContainer" style="display: none;">
+            <div class="chat-container" id="chatContainer" style="display:none;">
                 <div class="chat-header">
                     <div class="current-model-info">
                         <span class="model-badge" id="currentModelBadge">
-                            <i class="fas fa-bolt"></i> Phi-3-mini
-                        </span>
-                        <span class="model-status-indicator" id="modelStatus">
-                            <span class="status-dot active"></span> <span id="modelStatusText">جاهز</span>
+                            <i class="fas fa-bolt"></i> Phi-3
                         </span>
                     </div>
-                    <div class="chat-actions">
-                        <button class="chat-action-btn" id="clearChatBtn">
-                            <i class="fas fa-trash"></i> مسح المحادثة
-                        </button>
-                        <button class="chat-action-btn" id="openSettingsBtn">
-                            <i class="fas fa-cog"></i> الإعدادات
-                        </button>
-                    </div>
+                    <button class="chat-action-btn" id="clearChatBtn">
+                        <i class="fas fa-trash"></i> مسح
+                    </button>
                 </div>
                 
                 <div class="messages-container" id="messagesContainer">
-                    <!-- الرسائل تظهر هنا -->
+                    <!-- Messages appear here -->
                 </div>
             </div>
         </main>
@@ -247,568 +127,55 @@
         <!-- شريط الإدخال -->
         <div class="input-container">
             <div class="input-wrapper">
-                <div class="input-left-buttons">
-                    <button class="input-btn" id="attachFileBtn" title="إرفاق ملف">
-                        <i class="fas fa-paperclip"></i>
-                    </button>
-                    <button class="input-btn" id="thinkingBtn" title="وضع التفكير">
-                        <i class="fas fa-brain"></i>
-                    </button>
-                </div>
+                <button class="input-btn" id="attachFileBtn" title="رفع ملف">
+                    <i class="fas fa-paperclip"></i>
+                </button>
                 
-                <div class="input-main">
-                    <textarea 
-                        id="messageInput" 
-                        placeholder="اكتب رسالتك هنا... (اضغط Enter للإرسال)"
-                        rows="1"
-                        autocomplete="off"
-                        autocorrect="off"
-                        autocapitalize="off"
-                        spellcheck="true"
-                    ></textarea>
-                </div>
+                <textarea 
+                    id="messageInput" 
+                    placeholder="اكتب رسالتك..."
+                    rows="1"
+                ></textarea>
                 
-                <div class="input-right-buttons">
-                    <button class="input-btn" id="webSearchBtn" title="بحث على الويب">
-                        <i class="fas fa-globe"></i>
-                    </button>
-                    <button class="send-btn" id="sendButton" title="إرسال">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="input-hint">
-                <span>التطبيق يعمل <strong>بدون إنترنت</strong> بعد التثبيت</span>
-            </div>
-        </div>
-
-        <!-- نافذة تعليمات التثبيت -->
-        <div class="modal" id="installModal" style="display: none;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3><i class="fas fa-download"></i> كيفية تثبيت التطبيق</h3>
-                    <button class="close-modal" id="closeInstallModal">✕</button>
-                </div>
-                <div class="modal-body">
-                    <div class="install-steps">
-                        <div class="install-step">
-                            <div class="step-number">1</div>
-                            <div class="step-content">
-                                <h4>في متصفح Chrome:</h4>
-                                <p>اضغط على <strong>⋮</strong> → "تثبيت التطبيق"</p>
-                            </div>
-                        </div>
-                        <div class="install-step">
-                            <div class="step-number">2</div>
-                            <div class="step-content">
-                                <h4>في متصفح Safari:</h4>
-                                <p>اضغط على <strong>↗</strong> → "أضف إلى الشاشة الرئيسية"</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="install-tips">
-                        <p><i class="fas fa-lightbulb"></i> بعد التثبيت، يمكنك استخدام التطبيق دون إنترنت</p>
-                    </div>
-                </div>
+                <button class="send-btn" id="sendButton" title="إرسال">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript المبسط -->
+    <!-- JavaScript -->
+    <script src="js/app-simple.js"></script>
+    
+    <!-- PWA Script -->
     <script>
-        // دالة لاخفاء شاشة التحميل
-        function hideLoadingScreen() {
-            const loadingScreen = document.getElementById('loadingScreen');
-            const app = document.getElementById('app');
-            
-            if (loadingScreen && app) {
-                setTimeout(() => {
-                    loadingScreen.style.opacity = '0';
-                    loadingScreen.style.transition = 'opacity 0.5s';
-                    
-                    setTimeout(() => {
-                        loadingScreen.style.display = 'none';
-                        app.style.display = 'block';
-                        initApp();
-                    }, 500);
-                }, 1000);
-            } else {
-                initApp();
-            }
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log('✅ Service Worker مسجل'))
+                .catch(e => console.error('❌ خطأ:', e));
         }
-
-        // تهيئة التطبيق
-        function initApp() {
-            console.log('🚀 بدء تشغيل التطبيق...');
-            
-            // تهيئة المتغيرات
-            let currentModel = 'phi3';
-            let isSidebarOpen = false;
-            let isDarkMode = false;
-            let isCompareMode = false;
-            let messages = [];
-            
-            // النماذج
-            const models = {
-                phi3: {
-                    name: 'Phi-3-mini',
-                    icon: 'fas fa-bolt',
-                    color: '#34a853',
-                    description: 'نموذج سريع وخفيف للمهام اليومية'
-                },
-                qwen: {
-                    name: 'Qwen-3-Max',
-                    icon: 'fas fa-crown',
-                    color: '#1a73e8',
-                    description: 'الأفضل للغة العربية والأسئلة المعقدة'
-                },
-                deepseek: {
-                    name: 'DeepSeek-Coder',
-                    icon: 'fas fa-code',
-                    color: '#ea4335',
-                    description: 'متخصص في البرمجة وحل المشاكل'
-                }
-            };
-
-            // عرض رسالة
-            function showAlert(message, type = 'info') {
-                const alertBar = document.getElementById('alertBar');
-                const alertText = document.getElementById('alertText');
-                
-                if (alertBar && alertText) {
-                    const colors = {
-                        success: '#34a853',
-                        error: '#ea4335',
-                        warning: '#fbbc05',
-                        info: '#1a73e8'
-                    };
-                    
-                    alertBar.style.background = colors[type];
-                    alertText.textContent = message;
-                    alertBar.style.display = 'flex';
-                    
-                    setTimeout(() => {
-                        alertBar.style.display = 'none';
-                    }, 4000);
-                }
-            }
-
-            // ربط الأحداث
-            function bindEvents() {
-                console.log('🔗 ربط الأحداث...');
-                
-                // القائمة الجانبية
-                const menuBtn = document.getElementById('menuBtn');
-                const closeSidebar = document.getElementById('closeSidebar');
-                const sidebarOverlay = document.getElementById('sidebarOverlay');
-                
-                if (menuBtn) menuBtn.addEventListener('click', toggleSidebar);
-                if (closeSidebar) closeSidebar.addEventListener('click', toggleSidebar);
-                if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
-                
-                // الإجراءات السريعة
-                document.querySelectorAll('.specialty-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        quickAction(this.dataset.action);
-                    });
-                });
-                
-                document.querySelectorAll('.quick-action-card').forEach(card => {
-                    card.addEventListener('click', function() {
-                        quickAction(this.dataset.action);
-                    });
-                });
-                
-                // الأزرار الأخرى
-                const sendButton = document.getElementById('sendButton');
-                const messageInput = document.getElementById('messageInput');
-                const newChatBtn = document.getElementById('newChatBtn');
-                const themeBtn = document.getElementById('themeBtn');
-                const clearChatBtn = document.getElementById('clearChatBtn');
-                const settingsBtn = document.getElementById('settingsBtn');
-                const openSettingsBtn = document.getElementById('openSettingsBtn');
-                const closeAlert = document.getElementById('closeAlert');
-                const showInstallTip = document.getElementById('showInstallTip');
-                const closeInstallModal = document.getElementById('closeInstallModal');
-                
-                if (sendButton) sendButton.addEventListener('click', sendMessage);
-                if (messageInput) {
-                    messageInput.addEventListener('keydown', function(e) {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            sendMessage();
-                        }
-                    });
-                }
-                
-                if (newChatBtn) newChatBtn.addEventListener('click', newChat);
-                if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
-                if (clearChatBtn) clearChatBtn.addEventListener('click', clearChat);
-                if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
-                if (openSettingsBtn) openSettingsBtn.addEventListener('click', openSettings);
-                if (closeAlert) closeAlert.addEventListener('click', hideAlert);
-                if (showInstallTip) showInstallTip.addEventListener('click', showInstallGuide);
-                if (closeInstallModal) closeInstallModal.addEventListener('click', () => {
-                    document.getElementById('installModal').style.display = 'none';
-                });
-                
-                // زر التثبيت
-                const installBtn = document.getElementById('installBtn');
-                if (installBtn) {
-                    installBtn.addEventListener('click', promptInstall);
-                    
-                    // إظهار زر التثبيت بعد 3 ثوان
-                    setTimeout(() => {
-                        installBtn.style.display = 'flex';
-                    }, 3000);
-                }
-                
-                // PWA
-                setupPWA();
-                
-                console.log('✅ تم ربط جميع الأحداث');
-                showAlert('التطبيق جاهز! اختر نموذجاً لتبدأ', 'success');
-            }
-
-            // وظائف التطبيق
-            function toggleSidebar() {
-                const sidebar = document.getElementById('sidebar');
-                const overlay = document.getElementById('sidebarOverlay');
-                
-                isSidebarOpen = !isSidebarOpen;
-                
-                if (isSidebarOpen) {
-                    sidebar.classList.add('open');
-                    overlay.classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                } else {
-                    sidebar.classList.remove('open');
-                    overlay.classList.remove('active');
-                    document.body.style.overflow = 'auto';
-                }
-            }
-
-            function quickAction(action) {
-                const prompts = {
-                    writer: 'أريد مساعدتك في كتابة مقال عن أهمية الذكاء الاصطناعي في التعليم',
-                    coder: 'ساعدني في كتابة دالة JavaScript لفرز المصفوفات',
-                    assistant: 'ما هي أفضل الطرق لتنظيم الوقت وتحسين الإنتاجية؟',
-                    researcher: 'ما هي أحدث التطورات في مجال الذكاء الاصطناعي في 2025؟',
-                    question: 'ما هو الفرق بين الذكاء الاصطناعي والتعلم الآلي؟',
-                    code: 'اكتب كود Python لتحليل البيانات',
-                    translate: 'ترجم هذه الجملة إلى الإنجليزية: الذكاء الاصطناعي يغير العالم',
-                    creative: 'اكتب قصيدة قصيرة عن التكنولوجيا والابتكار'
-                };
-                
-                const message = prompts[action] || action;
-                const input = document.getElementById('messageInput');
-                if (input) {
-                    input.value = message;
-                    autoResize(input);
-                    setTimeout(() => sendMessage(), 500);
-                }
-            }
-
-            function sendMessage() {
-                const input = document.getElementById('messageInput');
-                const message = input ? input.value.trim() : '';
-                
-                if (!message) {
-                    showAlert('يرجى كتابة رسالة', 'warning');
-                    return;
-                }
-                
-                addMessage('user', message);
-                if (input) {
-                    input.value = '';
-                    autoResize(input);
-                }
-                
-                document.getElementById('welcomeSection').style.display = 'none';
-                document.getElementById('chatContainer').style.display = 'block';
-                
-                setTimeout(() => {
-                    const response = generateResponse(message, currentModel);
-                    addMessage('ai', response);
-                }, 1000);
-            }
-
-            function addMessage(sender, content, modelId = null) {
-                const container = document.getElementById('messagesContainer');
-                if (!container) return;
-                
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${sender}-message`;
-                
-                const timestamp = new Date().toLocaleTimeString('ar-SA', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                
-                if (sender === 'user') {
-                    messageDiv.innerHTML = `
-                        <div class="message-content">
-                            <div class="message-text">${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
-                            <div class="message-meta">
-                                <span class="message-time">${timestamp}</span>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    const model = modelId ? models[modelId] : models[currentModel];
-                    messageDiv.innerHTML = `
-                        <div class="ai-message">
-                            <div class="ai-avatar" style="background-color: ${model.color}">
-                                <i class="${model.icon}"></i>
-                            </div>
-                            <div class="message-content">
-                                <div class="message-header">
-                                    <strong>${model.name}</strong>
-                                    <small>${timestamp}</small>
-                                </div>
-                                <div class="message-text">${content.replace(/\n/g, '<br>')}</div>
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                container.appendChild(messageDiv);
-                container.scrollTop = container.scrollHeight;
-            }
-
-            function generateResponse(message, modelId) {
-                const responses = {
-                    phi3: `هذا رد من Phi-3-mini (النموذج السريع):
-
-سؤالك: "${message.substring(0, 50)}..."
-
-Phi-3-mini مصمم للمهام اليومية السريعة والردود المختصرة. إنه مثالي للأجهزة محدودة الموارد والاستخدام اليومي.`,
-
-                    qwen: `هذا رد من Qwen-3-Max (النموذج المتقدم):
-
-"${message.substring(0, 50)}..." - سؤال ممتاز!
-
-Qwen-3-Max يتميز بدعم ممتاز للغة العربية والقدرة على معالجة الأسئلة المعقدة. لديّ معرفة شاملة في مختلف المجالات.`,
-
-                    deepseek: `// رد من DeepSeek-Coder (النموذج المبرمج):
-
-/*
-سؤالك: "${message.substring(0, 50)}..."
-*/
-
-// DeepSeek-Coder متخصص في حل المشاكل البرمجية
-// يمكنه كتابة، تصحيح، وتحليل الأكواد`
-                };
-                
-                return responses[modelId] || 'عذرًا، النموذج غير متوفر حاليًا.';
-            }
-
-            function clearChat() {
-                if (confirm('هل تريد مسح المحادثة الحالية؟')) {
-                    const container = document.getElementById('messagesContainer');
-                    if (container) container.innerHTML = '';
-                    messages = [];
-                    document.getElementById('welcomeSection').style.display = 'block';
-                    document.getElementById('chatContainer').style.display = 'none';
-                    showAlert('تم مسح المحادثة', 'info');
-                }
-            }
-
-            function newChat() {
-                clearChat();
-            }
-
-            function toggleTheme() {
-                isDarkMode = !isDarkMode;
-                
-                if (isDarkMode) {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    document.getElementById('themeBtn').innerHTML = '<i class="fas fa-sun"></i>';
-                } else {
-                    document.documentElement.removeAttribute('data-theme');
-                    document.getElementById('themeBtn').innerHTML = '<i class="fas fa-moon"></i>';
-                }
-                
-                localStorage.setItem('aiHub_theme', isDarkMode ? 'dark' : 'light');
-                showAlert(`تم التبديل إلى الوضع ${isDarkMode ? 'الداكن' : 'الفاتح'}`, 'info');
-            }
-
-            function openSettings() {
-                showAlert('نافذة الإعدادات قيد التطوير', 'info');
-            }
-
-            function hideAlert() {
-                const alertBar = document.getElementById('alertBar');
-                if (alertBar) alertBar.style.display = 'none';
-            }
-
-            function showInstallGuide() {
-                const modal = document.getElementById('installModal');
-                if (modal) modal.style.display = 'flex';
-            }
-
-            function autoResize(textarea) {
-                textarea.style.height = 'auto';
-                textarea.style.height = textarea.scrollHeight + 'px';
-            }
-
-            // PWA
-            function setupPWA() {
-                // Service Worker
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.register('sw.js')
-                        .then(registration => {
-                            console.log('✅ Service Worker مسجل:', registration.scope);
-                        })
-                        .catch(error => {
-                            console.error('❌ فشل تسجيل Service Worker:', error);
-                        });
-                }
-                
-                // زر التثبيت
-                let deferredPrompt;
-                
-                window.addEventListener('beforeinstallprompt', (e) => {
-                    e.preventDefault();
-                    deferredPrompt = e;
-                    
-                    const installBtn = document.getElementById('installBtn');
-                    if (installBtn) {
-                        installBtn.style.display = 'flex';
-                        
-                        installBtn.addEventListener('click', async () => {
-                            if (!deferredPrompt) return;
-                            
-                            deferredPrompt.prompt();
-                            const { outcome } = await deferredPrompt.userChoice;
-                            
-                            if (outcome === 'accepted') {
-                                console.log('✅ تم قبول التثبيت');
-                                showAlert('تم تثبيت التطبيق بنجاح!', 'success');
-                                installBtn.style.display = 'none';
-                            } else {
-                                console.log('❌ تم رفض التثبيت');
-                            }
-                            
-                            deferredPrompt = null;
-                        });
-                    }
-                });
-                
-                window.addEventListener('appinstalled', () => {
-                    const installBtn = document.getElementById('installBtn');
-                    if (installBtn) installBtn.style.display = 'none';
-                    showAlert('تم تثبيت التطبيق على جهازك!', 'success');
-                });
-            }
-
-            function promptInstall() {
-                showAlert('زر التثبيت يعمل!', 'info');
-            }
-
-            // ملء القائمة الجانبية
-            function populateModelList() {
-                const modelList = document.getElementById('modelList');
-                if (!modelList) return;
-                
-                modelList.innerHTML = '';
-                
-                Object.entries(models).forEach(([id, model]) => {
-                    const item = document.createElement('div');
-                    item.className = `model-item ${id === currentModel ? 'active' : ''}`;
-                    item.innerHTML = `
-                        <div class="model-icon" style="background-color: ${model.color};">
-                            <i class="${model.icon}"></i>
-                        </div>
-                        <div class="model-info">
-                            <h4>${model.name}</h4>
-                            <p>${model.description}</p>
-                        </div>
-                        <div class="model-status">
-                            <span class="status-dot ${id === currentModel ? 'active' : ''}"></span>
-                        </div>
-                    `;
-                    
-                    item.addEventListener('click', () => {
-                        selectModel(id);
-                    });
-                    modelList.appendChild(item);
-                });
-                
-                // تحديث الشارة
-                updateModelBadge();
-            }
-
-            function selectModel(modelId) {
-                if (models[modelId]) {
-                    currentModel = modelId;
-                    updateModelBadge();
-                    showAlert(`تم التبديل إلى ${models[modelId].name}`, 'success');
-                    toggleSidebar();
-                }
-            }
-
-            function updateModelBadge() {
-                const badge = document.getElementById('currentModelBadge');
-                const model = models[currentModel];
-                
-                if (badge && model) {
-                    badge.innerHTML = `<i class="${model.icon}"></i> ${model.name}`;
-                    badge.style.backgroundColor = model.color;
-                }
-            }
-
-            // تحميل الإعدادات
-            function loadSettings() {
-                const savedTheme = localStorage.getItem('aiHub_theme');
-                if (savedTheme === 'dark') {
-                    toggleTheme();
-                }
-                
-                const savedModel = localStorage.getItem('aiHub_model');
-                if (savedModel && models[savedModel]) {
-                    currentModel = savedModel;
-                }
-            }
-
-            // بدء التشغيل
-            function startApp() {
-                loadSettings();
-                populateModelList();
-                bindEvents();
-                
-                // تحديث حالة الاتصال
-                updateConnectionStatus();
-                
-                console.log('✅ التطبيق يعمل بنجاح');
-            }
-
-            function updateConnectionStatus() {
-                const isOnline = navigator.onLine;
-                const statusText = document.getElementById('connectionStatusText');
-                
-                if (statusText) {
-                    if (isOnline) {
-                        statusText.textContent = '🟢 متصل';
-                        statusText.style.color = '#34a853';
-                    } else {
-                        statusText.textContent = '🔴 غير متصل';
-                        statusText.style.color = '#ea4335';
-                        showAlert('أنت في وضع عدم الاتصال، التطبيق يعمل محلياً', 'info');
-                    }
-                }
-            }
-
-            // بدء التطبيق
-            startApp();
-        }
-
-        // بدء التطبيق عند تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', hideLoadingScreen);
         
-        // إذا فشل تحميل JavaScript، أظهر التطبيق على أي حال
-        setTimeout(hideLoadingScreen, 3000);
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const installBtn = document.getElementById('installBtn');
+            if (installBtn) {
+                installBtn.style.display = 'flex';
+                installBtn.onclick = () => {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then(() => {
+                        installBtn.style.display = 'none';
+                    });
+                };
+            }
+        });
+        
+        window.addEventListener('appinstalled', () => {
+            const installBtn = document.getElementById('installBtn');
+            if (installBtn) installBtn.style.display = 'none';
+        });
     </script>
 </body>
 </html>
-[file content end]

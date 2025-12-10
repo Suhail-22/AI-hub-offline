@@ -1,325 +1,0 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مركز الذكاء الاصطناعي</title>
-    
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a73e8">
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css">
-    
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-    <div id="app">
-        <!-- شريط التنبيهات -->
-        <div class="alert-bar" id="alertBar">
-            <span id="alertText">جاري التحميل...</span>
-            <button class="close-alert" id="closeAlert">✕</button>
-        </div>
-
-        <!-- زر تثبيت -->
-        <button class="install-btn" id="installBtn">
-            <i class="fas fa-download"></i> تثبيت التطبيق
-        </button>
-
-        <!-- الشريط العلوي -->
-        <header class="top-bar">
-            <button class="menu-btn" id="menuBtn">
-                <i class="fas fa-bars"></i>
-            </button>
-            
-            <div class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-brain"></i>
-                </div>
-                <h1>مركز الذكاء الاصطناعي</h1>
-            </div>
-            
-            <div class="header-actions">
-                <button class="icon-btn" id="newChatBtn" title="محادثة جديدة">
-                    <i class="fas fa-plus"></i>
-                </button>
-                <button class="icon-btn" id="themeBtn" title="تبديل السمة">
-                    <i class="fas fa-moon"></i>
-                </button>
-            </div>
-        </header>
-
-        <!-- القائمة الجانبية -->
-        <div class="sidebar-overlay" id="sidebarOverlay"></div>
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <h3><i class="fas fa-robot"></i> النماذج</h3>
-                <button class="close-sidebar" id="closeSidebar">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="model-list" id="modelList">
-                <!-- Models will be added by JS -->
-            </div>
-            
-            <div class="specialization-section">
-                <h4><i class="fas fa-magic"></i> التخصصات</h4>
-                <div class="specialty-buttons">
-                    <button class="specialty-btn" data-action="writer">
-                        <i class="fas fa-pen"></i> كاتب
-                    </button>
-                    <button class="specialty-btn" data-action="coder">
-                        <i class="fas fa-code"></i> مبرمج
-                    </button>
-                    <button class="specialty-btn" data-action="assistant">
-                        <i class="fas fa-assistive-listening-systems"></i> مساعد
-                    </button>
-                    <button class="specialty-btn" data-action="researcher">
-                        <i class="fas fa-search"></i> باحث
-                    </button>
-                </div>
-            </div>
-            
-            <div class="sidebar-footer">
-                <div class="storage-info">
-                    <div class="storage-bar">
-                        <div class="storage-fill" id="storageFill"></div>
-                    </div>
-                    <span id="storageText">0 / 5 MB مستخدم</span>
-                </div>
-                
-                <div class="user-section">
-                    <div class="user-info">
-                        <div class="user-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div>
-                            <p class="user-name">زائر</p>
-                            <div class="connection-status">
-                                <span class="status-indicator" id="connectionStatusDot"></span>
-                                <span id="connectionStatusText">جارٍ التحقق...</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- المحتوى الرئيسي -->
-        <main class="main-content">
-            <div class="welcome-section" id="welcomeSection">
-                <div class="welcome-icon">
-                    <i class="fas fa-brain"></i>
-                </div>
-                <h2>مرحبًا بك</h2>
-                <p class="welcome-text" id="welcomeText">اختر نموذجًا لتبدأ المحادثة</p>
-                
-                <div class="quick-actions">
-                    <div class="quick-action-card" data-action="question">
-                        <i class="fas fa-question-circle"></i>
-                        <h4>سؤال</h4>
-                        <p>اسأل عن أي موضوع</p>
-                    </div>
-                    <div class="quick-action-card" data-action="code">
-                        <i class="fas fa-code"></i>
-                        <h4>كود</h4>
-                        <p>اكتب أو صحح أكواد</p>
-                    </div>
-                    <div class="quick-action-card" data-action="translate">
-                        <i class="fas fa-language"></i>
-                        <h4>ترجمة</h4>
-                        <p>ترجم بين اللغات</p>
-                    </div>
-                    <div class="quick-action-card" data-action="creative">
-                        <i class="fas fa-paint-brush"></i>
-                        <h4>إبداع</h4>
-                        <p>أنشئ محتوى إبداعي</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- منطقة المحادثة -->
-            <div class="chat-container" id="chatContainer" style="display:none;">
-                <div class="chat-header">
-                    <div class="current-model-info">
-                        <span class="model-badge" id="currentModelBadge">
-                            <i class="fas fa-bolt"></i> Phi-3
-                        </span>
-                        <span class="model-status-indicator">
-                            <span class="status-dot active"></span>
-                            <span id="modelStatusText">جاهز</span>
-                        </span>
-                    </div>
-                    <div class="chat-actions">
-                        <button class="chat-action-btn" id="clearChatBtn">
-                            <i class="fas fa-trash"></i> مسح المحادثة
-                        </button>
-                        <button class="chat-action-btn" id="openSettingsBtn">
-                            <i class="fas fa-cog"></i> الإعدادات
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="messages-container" id="messagesContainer">
-                    <!-- Messages appear here -->
-                </div>
-            </div>
-        </main>
-
-        <!-- شريط الإدخال -->
-        <div class="input-container">
-            <div class="input-wrapper">
-                <div class="input-left-buttons">
-                    <button class="input-btn" id="attachFileBtn" title="رفع ملف">
-                        <i class="fas fa-paperclip"></i>
-                    </button>
-                    <button class="input-btn" id="thinkingBtn" title="وضع التفكير">
-                        <i class="fas fa-brain"></i>
-                    </button>
-                </div>
-                
-                <div class="input-main">
-                    <textarea 
-                        id="messageInput" 
-                        placeholder="اكتب رسالتك هنا..."
-                        rows="1"
-                    ></textarea>
-                </div>
-                
-                <div class="input-right-buttons">
-                    <button class="input-btn" id="webSearchBtn" title="بحث على الويب">
-                        <i class="fas fa-globe"></i>
-                    </button>
-                    <button class="send-btn" id="sendButton" title="إرسال">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="input-hint">
-                <span>التطبيق يعمل <strong>بدون إنترنت</strong></span>
-            </div>
-        </div>
-
-        <!-- نافذة تعليمات التثبيت -->
-        <div class="modal" id="installModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3><i class="fas fa-download"></i> كيفية التثبيت</h3>
-                    <button class="close-modal" id="closeInstallModal">✕</button>
-                </div>
-                <div class="modal-body">
-                    <div class="install-steps">
-                        <div class="install-step">
-                            <div class="step-number">1</div>
-                            <div class="step-content">
-                                <h4>في متصفح Chrome:</h4>
-                                <p>اضغط على <strong>⋮</strong> → "تثبيت التطبيق"</p>
-                            </div>
-                        </div>
-                        <div class="install-step">
-                            <div class="step-number">2</div>
-                            <div class="step-content">
-                                <h4>في متصفح Safari:</h4>
-                                <p>اضغط على <strong>↗</strong> → "أضف إلى الشاشة الرئيسية"</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- JavaScript -->
-    <script src="js/app-simple.js"></script>
-    
-    <!-- PWA Script -->
-    <script>
-        // تسجيل Service Worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
-                        console.log('✅ Service Worker مسجل:', registration.scope);
-                    })
-                    .catch(error => {
-                        console.error('❌ خطأ في Service Worker:', error);
-                    });
-            });
-        }
-        
-        // إدارة تثبيت PWA
-        let deferredPrompt;
-        const installBtn = document.getElementById('installBtn');
-        
-        window.addEventListener('beforeinstallprompt', (e) => {
-            console.log('📱 beforeinstallprompt event fired');
-            e.preventDefault();
-            deferredPrompt = e;
-            
-            // تأخير عرض الزر لمدة 3 ثوان
-            setTimeout(() => {
-                if (installBtn) {
-                    installBtn.style.display = 'flex';
-                    console.log('🔄 عرض زر التثبيت');
-                }
-            }, 3000);
-        });
-        
-        // زر التثبيت
-        if (installBtn) {
-            installBtn.addEventListener('click', async () => {
-                if (!deferredPrompt) {
-                    alert('زر التثبيت غير متاح. حاول تحديث الصفحة أو استخدم القائمة في المتصفح.');
-                    return;
-                }
-                
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                
-                if (outcome === 'accepted') {
-                    console.log('✅ تم قبول التثبيت');
-                    installBtn.style.display = 'none';
-                } else {
-                    console.log('❌ تم رفض التثبيت');
-                }
-                
-                deferredPrompt = null;
-            });
-        }
-        
-        // عند التثبيت
-        window.addEventListener('appinstalled', () => {
-            console.log('🎉 تم تثبيت PWA');
-            if (installBtn) {
-                installBtn.style.display = 'none';
-            }
-            deferredPrompt = null;
-        });
-        
-        // حالة الاتصال
-        function updateConnectionStatus() {
-            const isOnline = navigator.onLine;
-            const statusDot = document.getElementById('connectionStatusDot');
-            const statusText = document.getElementById('connectionStatusText');
-            
-            if (statusDot && statusText) {
-                if (isOnline) {
-                    statusDot.className = 'status-indicator online';
-                    statusText.textContent = '🟢 متصل';
-                } else {
-                    statusDot.className = 'status-indicator offline';
-                    statusText.textContent = '🔴 غير متصل';
-                }
-            }
-        }
-        
-        window.addEventListener('online', updateConnectionStatus);
-        window.addEventListener('offline', updateConnectionStatus);
-        updateConnectionStatus(); // التشغيل الأولي
-    </script>
-</body>
-</html>

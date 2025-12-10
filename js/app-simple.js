@@ -10,6 +10,7 @@ let isCompareMode = false;
 let messages = [];
 let deferredPrompt = null;
 let isOnline = navigator.onLine;
+let currentConversationId = null;
 
 // النماذج
 const models = {
@@ -62,6 +63,9 @@ function initApp() {
     // التحقق من تثبيت PWA
     checkIfPWAInstalled();
     
+    // تحديث معلومات التخزين
+    updateStorageInfo();
+    
     console.log('✅ التطبيق جاهز للاستخدام');
     showAlert('مرحبًا بك! اختر نموذجًا لتبدأ المحادثة', 'info');
 }
@@ -69,32 +73,38 @@ function initApp() {
 // ===== ربط الأحداث =====
 function bindEvents() {
     // القائمة الجانبية
-    document.getElementById('menuBtn').addEventListener('click', toggleSidebar);
-    document.getElementById('closeSidebar').addEventListener('click', toggleSidebar);
-    document.getElementById('sidebarOverlay').addEventListener('click', toggleSidebar);
+    document.getElementById('menuBtn')?.addEventListener('click', toggleSidebar);
+    document.getElementById('closeSidebar')?.addEventListener('click', toggleSidebar);
+    document.getElementById('sidebarOverlay')?.addEventListener('click', toggleSidebar);
     
     // زر تثبيت PWA
-    document.getElementById('installBtn').addEventListener('click', promptInstall);
+    document.getElementById('installBtn')?.addEventListener('click', promptInstall);
     document.getElementById('showInstallTip')?.addEventListener('click', showInstallGuide);
     document.getElementById('closeInstallModal')?.addEventListener('click', () => {
         document.getElementById('installModal').style.display = 'none';
     });
     
     // الأزرار
-    document.getElementById('themeBtn').addEventListener('click', toggleTheme);
-    document.getElementById('newChatBtn').addEventListener('click', newChat);
-    document.getElementById('clearChatBtn').addEventListener('click', clearChat);
-    document.getElementById('settingsBtn').addEventListener('click', openSettings);
-    document.getElementById('openSettingsBtn').addEventListener('click', openSettings);
+    document.getElementById('themeBtn')?.addEventListener('click', toggleTheme);
+    document.getElementById('newChatBtn')?.addEventListener('click', newChat);
+    document.getElementById('clearChatBtn')?.addEventListener('click', clearChat);
+    document.getElementById('settingsBtn')?.addEventListener('click', openSettings);
+    document.getElementById('openSettingsBtn')?.addEventListener('click', openSettings);
     
     // الإدخال
-    document.getElementById('sendButton').addEventListener('click', sendMessage);
-    document.getElementById('messageInput').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
-    });
+    document.getElementById('sendButton')?.addEventListener('click', sendMessage);
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        messageInput.addEventListener('input', function() {
+            autoResize(this);
+        });
+    }
     
     // الإجراءات السريعة
     document.querySelectorAll('.specialty-btn').forEach(btn => {
@@ -110,15 +120,13 @@ function bindEvents() {
     });
     
     // الأزرار الأخرى
-    document.getElementById('attachFileBtn').addEventListener('click', () => {
-        showAlert('ميزة رفع الملفات قيد التطوير', 'info');
-    });
+    document.getElementById('attachFileBtn')?.addEventListener('click', handleFileUpload);
     
-    document.getElementById('thinkingBtn').addEventListener('click', () => {
+    document.getElementById('thinkingBtn')?.addEventListener('click', () => {
         showAlert('وضع التفكير العميق قيد التطوير', 'info');
     });
     
-    document.getElementById('webSearchBtn').addEventListener('click', () => {
+    document.getElementById('webSearchBtn')?.addEventListener('click', () => {
         if (isOnline) {
             showAlert('البحث على الويب قيد التطوير', 'info');
         } else {
@@ -126,12 +134,14 @@ function bindEvents() {
         }
     });
     
-    document.getElementById('closeAlert').addEventListener('click', hideAlert);
+    document.getElementById('closeAlert')?.addEventListener('click', hideAlert);
 }
 
 // ===== إدارة القائمة الجانبية =====
 function populateModelList() {
     const modelList = document.getElementById('modelList');
+    if (!modelList) return;
+    
     modelList.innerHTML = '';
     
     Object.entries(models).forEach(([id, model]) => {
@@ -184,6 +194,8 @@ function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebarOverlay');
     
+    if (!sidebar || !overlay) return;
+    
     isSidebarOpen = !isSidebarOpen;
     
     if (isSidebarOpen) {
@@ -217,11 +229,14 @@ function selectModel(modelId) {
         // تحديث الشارة
         const model = models[modelId];
         const badge = document.getElementById('currentModelBadge');
-        badge.innerHTML = `<i class="${model.icon}"></i> ${model.name}`;
-        badge.style.backgroundColor = model.color;
+        if (badge) {
+            badge.innerHTML = `<i class="${model.icon}"></i> ${model.name}`;
+            badge.style.backgroundColor = model.color;
+        }
         
         // تحديث نص الحالة
-        document.getElementById('modelStatusText').textContent = 'جاهز';
+        const statusText = document.getElementById('modelStatusText');
+        if (statusText) statusText.textContent = 'جاهز';
         
         showAlert(`تم التبديل إلى ${model.name}`, 'success');
         toggleSidebar();
@@ -234,6 +249,8 @@ function selectModel(modelId) {
 // ===== إدارة المحادثات =====
 function sendMessage() {
     const input = document.getElementById('messageInput');
+    if (!input) return;
+    
     const message = input.value.trim();
     
     if (!message) {
@@ -247,12 +264,16 @@ function sendMessage() {
     autoResize(input);
     
     // إخفاء رسالة الترحيب
-    document.getElementById('welcomeSection').style.display = 'none';
-    document.getElementById('chatContainer').style.display = 'block';
+    const welcomeSection = document.getElementById('welcomeSection');
+    const chatContainer = document.getElementById('chatContainer');
+    if (welcomeSection && chatContainer) {
+        welcomeSection.style.display = 'none';
+        chatContainer.style.display = 'block';
+    }
     
     // إظهار حالة المعالجة
     const statusText = document.getElementById('modelStatusText');
-    statusText.textContent = 'جاري المعالجة...';
+    if (statusText) statusText.textContent = 'جاري المعالجة...';
     
     // معالجة الرسالة
     processMessage(message);
@@ -260,6 +281,8 @@ function sendMessage() {
 
 function addMessage(sender, content, modelId = null) {
     const container = document.getElementById('messagesContainer');
+    if (!container) return;
+    
     const messageId = 'msg_' + Date.now();
     
     const messageDiv = document.createElement('div');
@@ -337,15 +360,19 @@ async function processMessage(message) {
         const responses = {};
         
         // إضافة رسالة تحميل
-        const loadingDiv = document.createElement('div');
-        loadingDiv.className = 'comparison-loading';
-        loadingDiv.innerHTML = `
-            <div class="loading-spinner">
-                <div class="spinner"></div>
-                <p>جاري تحليل الرسالة بواسطة النماذج الثلاثة...</p>
-            </div>
-        `;
-        document.getElementById('messagesContainer').appendChild(loadingDiv);
+        const container = document.getElementById('messagesContainer');
+        if (container) {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'comparison-loading';
+            loadingDiv.innerHTML = `
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>جاري تحليل الرسالة بواسطة النماذج الثلاثة...</p>
+                </div>
+            `;
+            container.appendChild(loadingDiv);
+            container.scrollTop = container.scrollHeight;
+        }
         
         // توليد الردود
         for (const modelId in models) {
@@ -354,7 +381,8 @@ async function processMessage(message) {
         }
         
         // إزالة رسالة التحميل
-        loadingDiv.remove();
+        const loadingDiv = document.querySelector('.comparison-loading');
+        if (loadingDiv) loadingDiv.remove();
         
         // عرض الردود
         for (const [modelId, response] of Object.entries(responses)) {
@@ -370,7 +398,8 @@ async function processMessage(message) {
     }
     
     // تحديث حالة النموذج
-    document.getElementById('modelStatusText').textContent = 'جاهز';
+    const statusText = document.getElementById('modelStatusText');
+    if (statusText) statusText.textContent = 'جاهز';
 }
 
 function generateResponse(message, modelId) {
@@ -438,26 +467,96 @@ function clearChat() {
     }
     
     if (confirm('هل تريد مسح المحادثة الحالية؟')) {
-        document.getElementById('messagesContainer').innerHTML = '';
+        const container = document.getElementById('messagesContainer');
+        if (container) container.innerHTML = '';
+        
         messages = [];
-        document.getElementById('welcomeSection').style.display = 'block';
-        document.getElementById('chatContainer').style.display = 'none';
+        currentConversationId = null;
+        
+        const welcomeSection = document.getElementById('welcomeSection');
+        const chatContainer = document.getElementById('chatContainer');
+        if (welcomeSection && chatContainer) {
+            welcomeSection.style.display = 'block';
+            chatContainer.style.display = 'none';
+        }
+        
         showAlert('تم مسح المحادثة بنجاح', 'success');
         
         // حذف المحادثة من التخزين
         localStorage.removeItem('aiHub_currentConversation');
+        updateStorageInfo();
     }
 }
 
 function newChat() {
     if (messages.length > 0) {
-        if (confirm('هل تريد بدء محادثة جديدة؟ سيتم حفظ المحادثة الحالية.')) {
-            saveConversation();
-            clearChat();
+        // حفظ المحادثة الحالية أولاً
+        saveConversation();
+        
+        // بدء محادثة جديدة
+        const container = document.getElementById('messagesContainer');
+        if (container) container.innerHTML = '';
+        
+        messages = [];
+        currentConversationId = 'conv_' + Date.now();
+        
+        const welcomeSection = document.getElementById('welcomeSection');
+        const chatContainer = document.getElementById('chatContainer');
+        if (welcomeSection && chatContainer) {
+            welcomeSection.style.display = 'block';
+            chatContainer.style.display = 'none';
         }
+        
+        showAlert('بدأت محادثة جديدة', 'success');
+        updateStorageInfo();
     } else {
         showAlert('ابدأ محادثة جديدة باستخدام حقل الإدخال', 'info');
     }
+}
+
+// ===== رفع الملفات =====
+function handleFileUpload() {
+    // إنشاء عنصر إدخال ملف مخفي
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.txt,.pdf,.doc,.docx,.jpg,.jpeg,.png,.csv';
+    fileInput.style.display = 'none';
+    
+    fileInput.onchange = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        // التحقق من حجم الملف (حد أقصى 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            showAlert('حجم الملف كبير جداً (الحد الأقصى 5MB)', 'error');
+            return;
+        }
+        
+        showAlert(`تم تحميل الملف: ${file.name}`, 'success');
+        
+        // قراءة محتوى الملف النصي
+        if (file.type.startsWith('text/') || file.name.endsWith('.txt')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                // إضافة محتوى الملف كرسالة
+                addMessage('user', `📎 ${file.name}\n\n${content.substring(0, 500)}...`);
+                showAlert('تم قراءة محتوى الملف، يمكنك الآن إرسال أسئلة عنه', 'info');
+            };
+            reader.readAsText(file);
+        } else {
+            // للملفات الأخرى، عرض اسم الملف فقط
+            addMessage('user', `📎 تم رفع الملف: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
+            showAlert('تم رفع الملف بنجاح', 'success');
+        }
+        
+        // تنظيف
+        document.body.removeChild(fileInput);
+    };
+    
+    // إضافة وإطلاق حدث النقر
+    document.body.appendChild(fileInput);
+    fileInput.click();
 }
 
 // ===== إعدادات =====
@@ -467,7 +566,8 @@ function loadSettings() {
     if (savedTheme === 'dark') {
         isDarkMode = true;
         document.documentElement.setAttribute('data-theme', 'dark');
-        document.getElementById('themeBtn').innerHTML = '<i class="fas fa-sun"></i>';
+        const themeBtn = document.getElementById('themeBtn');
+        if (themeBtn) themeBtn.innerHTML = '<i class="fas fa-sun"></i>';
     }
     
     // تحميل النموذج
@@ -484,8 +584,14 @@ function loadSettings() {
             const conv = JSON.parse(savedConversation);
             if (conv.messages && conv.messages.length > 0) {
                 messages = conv.messages;
-                document.getElementById('welcomeSection').style.display = 'none';
-                document.getElementById('chatContainer').style.display = 'block';
+                currentConversationId = conv.id;
+                
+                const welcomeSection = document.getElementById('welcomeSection');
+                const chatContainer = document.getElementById('chatContainer');
+                if (welcomeSection && chatContainer) {
+                    welcomeSection.style.display = 'none';
+                    chatContainer.style.display = 'block';
+                }
                 
                 // إعادة بناء الرسائل
                 conv.messages.forEach(msg => {
@@ -514,14 +620,19 @@ function saveSettings() {
 
 function saveConversation() {
     if (messages.length > 0) {
+        if (!currentConversationId) {
+            currentConversationId = 'conv_' + Date.now();
+        }
+        
         const conversation = {
-            id: 'conv_' + Date.now(),
+            id: currentConversationId,
             model: currentModel,
             messages: messages,
             timestamp: new Date().toISOString()
         };
         
         localStorage.setItem('aiHub_currentConversation', JSON.stringify(conversation));
+        updateStorageInfo();
     }
 }
 
@@ -530,12 +641,18 @@ function toggleTheme() {
     
     if (isDarkMode) {
         document.documentElement.setAttribute('data-theme', 'dark');
-        document.getElementById('themeBtn').innerHTML = '<i class="fas fa-sun"></i>';
-        document.getElementById('themeBtn').title = 'الوضع الفاتح';
+        const themeBtn = document.getElementById('themeBtn');
+        if (themeBtn) {
+            themeBtn.innerHTML = '<i class="fas fa-sun"></i>';
+            themeBtn.title = 'الوضع الفاتح';
+        }
     } else {
         document.documentElement.removeAttribute('data-theme');
-        document.getElementById('themeBtn').innerHTML = '<i class="fas fa-moon"></i>';
-        document.getElementById('themeBtn').title = 'الوضع الداكن';
+        const themeBtn = document.getElementById('themeBtn');
+        if (themeBtn) {
+            themeBtn.innerHTML = '<i class="fas fa-moon"></i>';
+            themeBtn.title = 'الوضع الداكن';
+        }
     }
     
     saveSettings();
@@ -568,21 +685,24 @@ function quickAction(action) {
     };
     
     const message = prompts[action] || action;
-    document.getElementById('messageInput').value = message;
-    autoResize(document.getElementById('messageInput'));
-    
-    // إذا كانت القائمة الجانبية مفتوحة، أغلقها
-    if (isSidebarOpen) {
-        toggleSidebar();
+    const input = document.getElementById('messageInput');
+    if (input) {
+        input.value = message;
+        autoResize(input);
+        
+        // إذا كانت القائمة الجانبية مفتوحة، أغلقها
+        if (isSidebarOpen) {
+            toggleSidebar();
+        }
+        
+        setTimeout(() => {
+            input.focus();
+            showAlert('تم تحضير الرسالة، اضغط إرسال أو Enter', 'info');
+        }, 300);
     }
-    
-    setTimeout(() => {
-        document.getElementById('messageInput').focus();
-        showAlert('تم تحضير الرسالة، اضغط إرسال أو Enter', 'info');
-    }, 300);
 }
 
-// ===== PWA =====
+// ===== PWA - إصلاح مشكلة التثبيت =====
 function setupPWA() {
     // استمع لحدث beforeinstallprompt
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -590,10 +710,10 @@ function setupPWA() {
         e.preventDefault();
         deferredPrompt = e;
         
-        // تأخير عرض الزر لمدة 5 ثواني
+        // تأخير عرض الزر لمدة 3 ثواني
         setTimeout(() => {
             showInstallButton();
-        }, 5000);
+        }, 3000);
     });
     
     // استمع لحدث appinstalled
@@ -637,24 +757,36 @@ function hideInstallButton() {
 
 async function promptInstall() {
     if (!deferredPrompt) {
-        showAlert('زر التثبيت غير متاح حالياً', 'warning');
+        showAlert('زر التثبيت غير متاح حالياً. حاول تحديث الصفحة.', 'warning');
         return;
     }
     
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-        console.log('✅ تم قبول التثبيت');
-        deferredPrompt = null;
-    } else {
-        console.log('❌ تم رفض التثبيت');
-        showAlert('يمكنك تثبيت التطبيق لاحقاً من القائمة', 'info');
+    try {
+        // عرض نافذة التثبيت
+        deferredPrompt.prompt();
+        
+        // الانتظار لاختيار المستخدم
+        const { outcome } = await deferredPrompt.userChoice;
+        
+        if (outcome === 'accepted') {
+            console.log('✅ تم قبول التثبيت');
+            deferredPrompt = null;
+            showAlert('جاري تثبيت التطبيق...', 'success');
+        } else {
+            console.log('❌ تم رفض التثبيت');
+            showAlert('يمكنك تثبيت التطبيق لاحقاً من القائمة', 'info');
+        }
+    } catch (error) {
+        console.error('❌ خطأ في التثبيت:', error);
+        showAlert('حدث خطأ أثناء التثبيت. حاول مرة أخرى.', 'error');
     }
 }
 
 function showInstallGuide() {
-    document.getElementById('installModal').style.display = 'flex';
+    const modal = document.getElementById('installModal');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
 }
 
 function checkIfPWAInstalled() {
@@ -663,6 +795,7 @@ function checkIfPWAInstalled() {
         window.navigator.standalone) {
         console.log('📱 التطبيق يعمل كـ PWA مثبت');
         hideInstallButton();
+        localStorage.setItem('aiHub_installed', 'true');
     }
 }
 
@@ -672,23 +805,25 @@ function updateConnectionStatus() {
     const statusDot = document.getElementById('connectionStatusDot');
     const statusText = document.getElementById('connectionStatusText');
     
-    if (isOnline) {
-        statusDot.className = 'status-indicator online';
-        statusText.textContent = '🟢 متصل بالإنترنت';
-        statusText.style.color = '#34a853';
-    } else {
-        statusDot.className = 'status-indicator offline';
-        statusText.textContent = '🔴 غير متصل';
-        statusText.style.color = '#ea4335';
-        
-        if (!localStorage.getItem('aiHub_offlineAlertShown')) {
-            showAlert('أنت في وضع عدم الاتصال، التطبيق يعمل محلياً', 'info');
-            localStorage.setItem('aiHub_offlineAlertShown', 'true');
+    if (statusDot && statusText) {
+        if (isOnline) {
+            statusDot.className = 'status-indicator online';
+            statusText.textContent = '🟢 متصل بالإنترنت';
+            statusText.style.color = '#34a853';
+        } else {
+            statusDot.className = 'status-indicator offline';
+            statusText.textContent = '🔴 غير متصل';
+            statusText.style.color = '#ea4335';
             
-            // إعادة تعيين بعد 5 دقائق
-            setTimeout(() => {
-                localStorage.removeItem('aiHub_offlineAlertShown');
-            }, 300000);
+            if (!localStorage.getItem('aiHub_offlineAlertShown')) {
+                showAlert('أنت في وضع عدم الاتصال، التطبيق يعمل محلياً', 'info');
+                localStorage.setItem('aiHub_offlineAlertShown', 'true');
+                
+                // إعادة تعيين بعد 5 دقائق
+                setTimeout(() => {
+                    localStorage.removeItem('aiHub_offlineAlertShown');
+                }, 300000);
+            }
         }
     }
 }
@@ -710,12 +845,12 @@ function updateStorageInfo() {
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
             const value = localStorage.getItem(key);
-            totalSize += key.length + value.length;
+            totalSize += key.length + (value ? value.length : 0);
         }
         
         // تحويل للـ MB
         const sizeInMB = (totalSize / (1024 * 1024)).toFixed(2);
-        const percentage = Math.min((sizeInMB / 5) * 100, 100); // افترضنا 5MB كحد أقصى
+        const percentage = Math.min((sizeInMB / 5) * 100, 100);
         
         // تحديث واجهة المستخدم
         const storageFill = document.getElementById('storageFill');
@@ -743,6 +878,8 @@ function showAlert(message, type = 'info') {
     const alertBar = document.getElementById('alertBar');
     const alertText = document.getElementById('alertText');
     
+    if (!alertBar || !alertText) return;
+    
     const colors = {
         success: '#34a853',
         error: '#ea4335',
@@ -760,16 +897,25 @@ function showAlert(message, type = 'info') {
 
 function hideAlert() {
     const alertBar = document.getElementById('alertBar');
-    alertBar.style.display = 'none';
+    if (alertBar) {
+        alertBar.style.display = 'none';
+    }
 }
 
 function copyMessage(messageId) {
     const message = document.getElementById(messageId);
     if (!message) return;
     
-    const text = message.querySelector('.message-text')?.textContent || '';
+    const textElement = message.querySelector('.message-text');
+    if (!textElement) return;
+    
+    const text = textElement.textContent || textElement.innerText;
+    
     navigator.clipboard.writeText(text).then(() => {
         showAlert('تم نسخ الرسالة إلى الحافظة', 'success');
+    }).catch(err => {
+        console.error('فشل نسخ النص: ', err);
+        showAlert('فشل نسخ الرسالة', 'error');
     });
 }
 
@@ -791,6 +937,8 @@ function likeMessage(messageId) {
 }
 
 function autoResize(textarea) {
+    if (!textarea) return;
+    
     textarea.style.height = 'auto';
     const newHeight = Math.min(textarea.scrollHeight, 120);
     textarea.style.height = newHeight + 'px';
@@ -834,17 +982,11 @@ function formatResponse(text) {
 }
 
 // ===== بدء التطبيق =====
-document.addEventListener('DOMContentLoaded', initApp);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
 
 // تحديث حالة الاتصال عند التغيير
-window.addEventListener('online', updateConnectionStatus);
-window.addEventListener('offline', updateConnectionStatus);
-
-// جعل الدوال متاحة عالميًا
-window.copyMessage = copyMessage;
-window.likeMessage = likeMessage;
-window.toggleSidebar = toggleSidebar;
-
-// تحديث معلومات التخزين كل دقيقة
-setInterval(updateStorageInfo, 60000);
-[file content end]
+window.addEventListener

@@ -1,49 +1,16 @@
-[file name]: manifest.json
-[file content begin]
 {
-  "name": "مركز الذكاء الاصطناعي",
+  "name": "مركز الذكاء",
   "short_name": "AI Hub",
-  "description": "تطبيق ذكاء اصطناعي يعمل بدون إنترنت",
-  "start_url": "https://suhail-22.github.io/AI-hub-offline/",
-  "scope": "https://suhail-22.github.io/AI-hub-offline/",
+  "description": "تطبيق ذكاء اصطناعي",
+  "start_url": "/AI-hub-offline/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1a73e8",
-  "orientation": "portrait",
-  "dir": "rtl",
-  "lang": "ar",
   "icons": [
     {
       "src": "https://cdn.jsdelivr.net/npm/@mdi/svg@7.2.96/svg/robot.svg",
       "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "https://cdn.jsdelivr.net/npm/@mdi/svg@7.2.96/svg/robot.svg",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "type": "image/svg+xml"
     }
-  ],
-  "categories": ["productivity", "education", "utilities"],
-  "screenshots": [
-    {
-      "src": "https://via.placeholder.com/1280x720/1a73e8/ffffff?text=AI+Hub",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "description": "واجهة التطبيق الرئيسية"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "محادثة جديدة",
-      "short_name": "جديد",
-      "description": "بدء محادثة جديدة مع الذكاء الاصطناعي",
-      "url": "https://suhail-22.github.io/AI-hub-offline/?new=true"
-    }
-  ],
-  "related_applications": [],
-  "prefer_related_applications": false
+  ]
 }
-[file content end]
